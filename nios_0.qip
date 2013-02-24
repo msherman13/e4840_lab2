@@ -1,0 +1,31 @@
+# clk
+# cpu_0
+set_global_assignment -name SDC_FILE [file join $::quartus(qip_path) "cpu_0.sdc"]
+set_global_assignment -name SOURCE_FILE [file join $::quartus(qip_path) "cpu_0.ocp"]
+# jtag_uart_0
+# sdram_0
+# tri_state_bridge_0
+# cfi_flash_0
+# timer_0
+# sysid
+# uart_0
+# timer_1
+# lcd_16207_0
+# led_green
+# led_red
+# button_pio
+# switch_pio
+# SEG7_Display
+# sram_0
+# I2C_0
+# epcs_controller
+# ISP1362
+# DM9000A
+# ps2_0
+# binary_vga_controller_0
+# null
+set_global_assignment -name SDC_FILE [file join $::quartus(ip_rootpath) "altera/sopc_builder_ip/altera_avalon_clock_adapter/altera_avalon_clock_adapter.sdc"]
+set_global_assignment -name SOPC_BUILDER_SIGNATURE_ID "BC305BE679A20000013CCC5EC004"
+set_global_assignment -entity "nios_0" -name IP_TOOL_NAME "sopc"
+set_global_assignment -entity "nios_0" -name IP_TOOL_VERSION "12.1"
+set_global_assignment -entity "nios_0" -name IP_TOOL_ENV "sopc"
