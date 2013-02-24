@@ -433,7 +433,6 @@ int main()
 			printf(" Keyboard error ....\n");
 		}
 	}
-}
 printf("Program terminated normally\n");
 return 0;
 

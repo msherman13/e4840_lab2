@@ -3678,17 +3678,16 @@ int main()
 		}
 	}
     1bd0:	003e5006 	br	1514 <main+0x14c>
+printf("Program terminated normally\n");
+return 0;
 
-	printf("Program terminated normally\n");
-	return 0;
-
-	ErrorExit:
-	printf("Program terminated with an error condition\n");
+ErrorExit:
+printf("Program terminated with an error condition\n");
     1bd4:	01000074 	movhi	r4,1
     1bd8:	210f0a04 	addi	r4,r4,15400
     1bdc:	00021480 	call	2148 <puts>
 
-	return 1;
+return 1;
     1be0:	00800044 	movi	r2,1
 }
     1be4:	e037883a 	mov	sp,fp
