@@ -145,6 +145,8 @@ int main()
 	char line_tracker[24][78];
 	int current_line = 0;
 	int username_input = 1;
+	int userChar = 0;
+	char username[10];
 	//unsigned int row, col;
 
 	VGA_Ctrl_Reg vga_ctrl_set;
@@ -251,6 +253,24 @@ int main()
 	//___________________________________________________________________________________
 	// Initialize the VGA...
 	//___________________________________________________________________________________
+	for (i = 0; i < 480; i++)
+	{
+		for (j = 0; j < 640; j++)
+		{
+			Vga_Clr_Pixel(VGA_0_BASE, j, i);
+		}
+	}
+	for(i = 0; i < 620; i++)
+	{
+		Vga_Set_Pixel(VGA_0_BASE, i, 410);
+	}
+	for(i = 0; i < 620; i++)
+	{
+		Vga_Set_Pixel(VGA_0_BASE, i, 435);
+	}
+	put_vga_string("Enter your username here: ", 0, 28);
+	//put_vga_string("Enter your message here: ", 0, 28);
+
 	for (;;) {
 		//___________________________________________________________________________________
 		//User Input...
@@ -262,21 +282,30 @@ int main()
 			//___________________________________________________________________________________
 			switch ( decode_mode ) {
 			case KB_ASCII_MAKE_CODE :
-				if (curMsgChar < MAX_MSG_LENGTH) {
-					UDP_PACKET_PAYLOAD[curMsgChar] = key;
-					put_vga_char(key, curLineChar, curMsgLine );
-					curMsgChar++;
-					curLineChar++;
-					if (curLineChar == 78) {
-						curLineChar = 0;
-						curMsgLine = curMsgLine + 1;
-					}
-					if (curMsgChar == 1) {
-						for (i = 411; i < 435; i++)
-						{
-							for (j = 0; j < 640; j++)
+				if (username_input == 1)
+				{
+					username[userChar] = key;
+					put_vga_char(key, 26+userChar, 28);
+					userChar++;
+				}
+				else
+				{
+					if (curMsgChar < MAX_MSG_LENGTH) {
+						UDP_PACKET_PAYLOAD[curMsgChar] = key;
+						put_vga_char(key, curLineChar, curMsgLine );
+						curMsgChar++;
+						curLineChar++;
+						if (curLineChar == 78) {
+							curLineChar = 0;
+							curMsgLine = curMsgLine + 1;
+						}
+						if (curMsgChar == 1) {
+							for (i = 411; i < 435; i++)
 							{
-								Vga_Clr_Pixel(VGA_0_BASE, j, i);
+								for (j = 0; j < 640; j++)
+								{
+									Vga_Clr_Pixel(VGA_0_BASE, j, i);
+								}
 							}
 						}
 					}
@@ -291,90 +320,90 @@ int main()
 				//Enter Key...
 				//___________________________________________________________________________________
 				case  0x5a:
-					UDP_PACKET_PAYLOAD[curMsgChar++] = 0; // Terminate the string
-					packet_length = UDP_PACKET_PAYLOAD_OFFSET + curMsgChar;
-					transmit_buffer[UDP_PACKET_LENGTH_OFFSET] = packet_length >> 8;
-					transmit_buffer[UDP_PACKET_LENGTH_OFFSET + 1] = packet_length & 0xff;
-					for (i = 441; i < 480; i++)
+					if (username_input == 1)
 					{
-						for (j = 0; j < 640; j++)
-						{
-							Vga_Clr_Pixel(VGA_0_BASE, j, i);
-						}
+						username_input = 0;
+						username[curMsgChar++] = 0; // Terminate the string
 					}
-					curLineChar = 25;
-					curMsgLine = 28;
-					put_vga_string("Enter your message here: ", 0, 28);
-					//___________________________________________________________________________________
-					//Archive & Display Message; Update Status...
-					//___________________________________________________________________________________
-					if (TransmitPacket(transmit_buffer, UDP_PACKET_PAYLOAD_OFFSET + curMsgChar + 1)==DMFE_SUCCESS && curMsgChar > 1) {
-						//		for (i = first_line; i < 24; i++)
-						//		{
-						//			for (j = 0; j < 79; j++)
-						//			{
-						//				line_tracker[i][j] = line_tracker[i+1][j];
-						//			}
-						//		}
-						if (curMsgChar < 79)
-						{
-							if (current_line == 25)
-							{
-								for (k = 0; k < 409; k++)
-								{
-									for (j = 0; j < 640; j++)
-									{
-										Vga_Clr_Pixel(VGA_0_BASE, j, k);
-									}
-								}
-								current_line = 0;
-							}
-							for (j = 0; j < curMsgChar-1; j++)
-							{
-								put_vga_char(UDP_PACKET_PAYLOAD[j], j, current_line);
-							}
-							put_vga_string("Message sent successfully.", 0, 26);
-							current_line++;
-						}
-						if (curMsgChar > 78)
-						{
-							if (current_line == 24)
-							{
-								for (k = 0; k < 409; k++)
-								{
-									for (j = 0; j < 640; j++)
-									{
-										Vga_Clr_Pixel(VGA_0_BASE, j, k);
-									}
-								}
-								current_line = 0;
-							}
-							for (j = 0; j < 79; j++)
-							{
-								put_vga_char(UDP_PACKET_PAYLOAD[j], j, current_line);
-							}
-							current_line++;
-							for (j = 0; j < curMsgChar-80; j++)
-							{
-								put_vga_char(UDP_PACKET_PAYLOAD[j+79], j, current_line);
-							}
-							put_vga_string("Message sent successfully.", 0, 26);
-							current_line++;
-						}
-
-					} else {
-						for (i = 411; i < 435; i++)
+					else{
+						UDP_PACKET_PAYLOAD[curMsgChar++] = 0; // Terminate the string
+						packet_length = UDP_PACKET_PAYLOAD_OFFSET + curMsgChar;
+						transmit_buffer[UDP_PACKET_LENGTH_OFFSET] = packet_length >> 8;
+						transmit_buffer[UDP_PACKET_LENGTH_OFFSET + 1] = packet_length & 0xff;
+						for (i = 441; i < 480; i++)
 						{
 							for (j = 0; j < 640; j++)
 							{
 								Vga_Clr_Pixel(VGA_0_BASE, j, i);
 							}
 						}
-						put_vga_string("Failed to send message.", 0, 26);
-					}
-					// reset data
-					for (curMsgChar=MAX_MSG_LENGTH-1; curMsgChar>0; curMsgChar--) {
-						UDP_PACKET_PAYLOAD[curMsgChar] = 0;
+						curLineChar = 25;
+						curMsgLine = 28;
+						put_vga_string("Enter your message here: ", 0, 28);
+						//___________________________________________________________________________________
+						//Archive & Display Message; Update Status...
+						//___________________________________________________________________________________
+						if (TransmitPacket(transmit_buffer, UDP_PACKET_PAYLOAD_OFFSET + curMsgChar + 1)==DMFE_SUCCESS && curMsgChar > 1) {
+							if (curMsgChar < 79)
+							{
+								if (current_line == 25)
+								{
+									for (k = 0; k < 409; k++)
+									{
+										for (j = 0; j < 640; j++)
+										{
+											Vga_Clr_Pixel(VGA_0_BASE, j, k);
+										}
+									}
+									current_line = 0;
+								}
+								for (j = 0; j < curMsgChar-1; j++)
+								{
+									put_vga_char(UDP_PACKET_PAYLOAD[j], j, current_line);
+								}
+								put_vga_string("Message sent successfully.", 0, 26);
+								current_line++;
+							}
+							if (curMsgChar > 78)
+							{
+								if (current_line == 24)
+								{
+									for (k = 0; k < 409; k++)
+									{
+										for (j = 0; j < 640; j++)
+										{
+											Vga_Clr_Pixel(VGA_0_BASE, j, k);
+										}
+									}
+									current_line = 0;
+								}
+								for (j = 0; j < 79; j++)
+								{
+									put_vga_char(UDP_PACKET_PAYLOAD[j], j, current_line);
+								}
+								current_line++;
+								for (j = 0; j < curMsgChar-80; j++)
+								{
+									put_vga_char(UDP_PACKET_PAYLOAD[j+79], j, current_line);
+								}
+								put_vga_string("Message sent successfully.", 0, 26);
+								current_line++;
+							}
+
+						} else {
+							for (i = 411; i < 435; i++)
+							{
+								for (j = 0; j < 640; j++)
+								{
+									Vga_Clr_Pixel(VGA_0_BASE, j, i);
+								}
+							}
+							put_vga_string("Failed to send message.", 0, 26);
+						}
+						// reset data
+						for (curMsgChar=MAX_MSG_LENGTH-1; curMsgChar>0; curMsgChar--) {
+							UDP_PACKET_PAYLOAD[curMsgChar] = 0;
+						}
 					}
 					break;
 					//___________________________________________________________________________________
@@ -433,11 +462,11 @@ int main()
 			printf(" Keyboard error ....\n");
 		}
 	}
-printf("Program terminated normally\n");
-return 0;
+	printf("Program terminated normally\n");
+	return 0;
 
-ErrorExit:
-printf("Program terminated with an error condition\n");
+	ErrorExit:
+	printf("Program terminated with an error condition\n");
 
-return 1;
+	return 1;
 }
