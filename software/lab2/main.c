@@ -149,6 +149,7 @@ int main()
 	char username[10];
 	int MAX_MSG_LENGTH_USER = 0;
 	char PAYLOAD_TEMP[128];
+	int shift = 0;
 	//unsigned int row, col;
 
 	VGA_Ctrl_Reg vga_ctrl_set;
@@ -221,6 +222,104 @@ int main()
 			//___________________________________________________________________________________
 			switch ( decode_mode ) {
 			case KB_ASCII_MAKE_CODE :
+				printf ("%c", key);
+				if (shift == 1)
+				{
+					switch (key)
+					{
+					case 97:
+					case 98:
+					case 99:
+					case 100:
+					case 101:
+					case 102:
+					case 103:
+					case 104:
+					case 105:
+					case 106:
+					case 107:
+					case 108:
+					case 109:
+					case 110:
+					case 111:
+					case 112:
+					case 113:
+					case 114:
+					case 115:
+					case 116:
+					case 117:
+					case 118:
+					case 119:
+					case 120:
+					case 121:
+					case 122:
+						key = key - 32;
+						break;
+					case 96:
+						key = 126;
+						break;
+					case 48:
+						key = 41;
+						break;
+					case 49:
+						key = 33;
+						break;
+					case 50:
+						key = 64;
+						break;
+					case 51:
+						key = 35;
+						break;
+					case 52:
+						key = 36;
+						break;
+					case 53:
+						key = 37;
+						break;
+					case 54:
+						key = 94;
+						break;
+					case 55:
+						key = 38;
+						break;
+					case 56:
+						key = 42;
+						break;
+					case 57:
+						key = 40;
+						break;
+					case 45:
+						key = 95;
+						break;
+					case 61:
+						key = 43;
+						break;
+					case 91:
+						key = 123;
+						break;
+					case 93:
+						key = 125;
+						break;
+					case 92:
+						key = 124;
+						break;
+					case 59:
+						key = 58;
+						break;
+					case 39:
+						key = 34;
+						break;
+					case 44:
+						key = 60;
+						break;
+					case 46:
+						key = 62;
+						break;
+					case 47:
+						key = 63;
+						break;
+					}
+				}
 				if (username_input == 1)
 				{
 					if (userChar < 10)
@@ -253,9 +352,6 @@ int main()
 					}
 				}
 				break ;
-			case KB_LONG_BINARY_MAKE_CODE :
-				printf("%s", " LONG ");
-				// fall through
 			case KB_BINARY_MAKE_CODE :
 				switch (key) {
 				//___________________________________________________________________________________
@@ -381,9 +477,15 @@ int main()
 						}
 					}
 					break;
-					//___________________________________________________________________________________
-					//Space Key...
-					//___________________________________________________________________________________
+				case 0x12:
+				case 0x59:
+				{
+					shift = 1;
+				}
+				break;
+				//___________________________________________________________________________________
+				//Space Key...
+				//___________________________________________________________________________________
 				case 0x29:
 					if (username_input == 1)
 					{
@@ -449,9 +551,15 @@ int main()
 
 				break ;
 				case KB_BREAK_CODE :
-					// do nothing
-				default :
-					break ;
+					switch (key)
+					{
+					case 0x12:
+					case 0x59:
+						shift = 0;
+						break;
+					}
+					default :
+						break ;
 			}
 		}
 		else {
