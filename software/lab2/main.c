@@ -143,10 +143,12 @@ int main()
 	int status = 0;
 	unsigned int packet_length;
 	char line_tracker[24][78];
-	int current_line = 0;
+	int current_line = 2;
 	int username_input = 1;
 	int userChar = 0;
 	char username[10];
+	int MAX_MSG_LENGTH_USER = 0;
+	char PAYLOAD_TEMP[128];
 	//unsigned int row, col;
 
 	VGA_Ctrl_Reg vga_ctrl_set;
@@ -190,67 +192,6 @@ int main()
 		goto ErrorExit;
 	}
 	//___________________________________________________________________________________
-	// Input user's information...
-	//___________________________________________________________________________________
-	//	int userChar = 0;
-	//	char username[10];
-	//	for (i = 0; i < 480; i++)
-	//	{
-	//		for (j = 0; j < 640; j++)
-	//		{
-	//			Vga_Clr_Pixel(VGA_0_BASE, j, i);
-	//		}
-	//	}
-	//	put_vga_string("Enter your username here: ", 0, 28);
-	//	for (username_input = 1;;)
-	//	{
-	//		status = read_make_code(&decode_mode, &key);
-	//		if (status == PS2_SUCCESS)
-	//		{
-	//			switch ( decode_mode )
-	//			{
-	//			case KB_ASCII_MAKE_CODE :
-	//				if (userChar < 10)
-	//				{
-	//					username[userChar] = key;
-	//					put_vga_char(key, 26+userChar, 28);
-	//					userChar++;
-	//				}
-	//				break;
-	//			case KB_BINARY_MAKE_CODE :
-	//				switch (key)
-	//				{
-	//				case  0x5a:
-	//					for (i = 0; i < 480; i++)
-	//					{
-	//						for (j = 0; j < 640; j++)
-	//						{
-	//							Vga_Clr_Pixel(VGA_0_BASE, j, i);
-	//						}
-	//					}
-	//					for(i = 0; i < 620; i++)
-	//					{
-	//						Vga_Set_Pixel(VGA_0_BASE, i, 410);
-	//					}
-	//					for(i = 0; i < 620; i++)
-	//					{
-	//						Vga_Set_Pixel(VGA_0_BASE, i, 435);
-	//					}
-	//					put_vga_string("Enter your message here: ", 0, 28);
-	//					for (curMsgChar=MAX_MSG_LENGTH-1; curMsgChar>0; curMsgChar--) {
-	//						UDP_PACKET_PAYLOAD[curMsgChar] = 0;
-	//						username[curMsgChar++] = 0; // Terminate the string
-	//						username_input = 0;
-	//					}
-	//					break;
-	//				}
-	//				break;
-	//			}
-	//		}
-	//	}
-	//}
-
-	//___________________________________________________________________________________
 	// Initialize the VGA...
 	//___________________________________________________________________________________
 	for (i = 0; i < 480; i++)
@@ -269,8 +210,6 @@ int main()
 		Vga_Set_Pixel(VGA_0_BASE, i, 435);
 	}
 	put_vga_string("Enter your username here: ", 0, 28);
-	//put_vga_string("Enter your message here: ", 0, 28);
-
 	for (;;) {
 		//___________________________________________________________________________________
 		//User Input...
@@ -284,13 +223,16 @@ int main()
 			case KB_ASCII_MAKE_CODE :
 				if (username_input == 1)
 				{
-					username[userChar] = key;
-					put_vga_char(key, 26+userChar, 28);
-					userChar++;
+					if (userChar < 10)
+					{
+						username[userChar] = key;
+						put_vga_char(key, 26+userChar, 28);
+						userChar++;
+					}
 				}
 				else
 				{
-					if (curMsgChar < MAX_MSG_LENGTH) {
+					if (curMsgChar < MAX_MSG_LENGTH_USER) {
 						UDP_PACKET_PAYLOAD[curMsgChar] = key;
 						put_vga_char(key, curLineChar, curMsgLine );
 						curMsgChar++;
@@ -322,12 +264,45 @@ int main()
 				case  0x5a:
 					if (username_input == 1)
 					{
+						username[userChar++] = 0; // Terminate the string
+						for (i = 441; i < 480; i++)
+						{
+							for (j = 26; j < 640; j++)
+							{
+								Vga_Clr_Pixel(VGA_0_BASE, j, i);
+							}
+						}
+						for(i = 0; i < 620; i++)
+						{
+							Vga_Set_Pixel(VGA_0_BASE, i, 25);
+						}
+						put_vga_string("Username: ",0,0);
+						for (j = 0; j < userChar-1; j++)
+						{
+							put_vga_char(username[j], j+10, 0);
+						}
+						put_vga_string("Enter your message here: ", 0, 28);
 						username_input = 0;
-						username[curMsgChar++] = 0; // Terminate the string
+						MAX_MSG_LENGTH_USER = MAX_MSG_LENGTH - userChar + 1 - 2;
 					}
 					else{
+						for (i = 0; i < userChar-1; i++)
+						{
+							PAYLOAD_TEMP[i] = username[i];
+						}
+						PAYLOAD_TEMP[userChar-1] = ':';
+						PAYLOAD_TEMP[userChar] = ' ';
+						for (i = 0; i < curMsgChar; i++)
+						{
+							PAYLOAD_TEMP[i+userChar+1] = UDP_PACKET_PAYLOAD[i];
+						}
+						for (i = 0; i < userChar+curMsgChar+4; i++)
+						{
+							UDP_PACKET_PAYLOAD[i] = PAYLOAD_TEMP[i];
+						}
+						curMsgChar = curMsgChar + userChar + 1;
 						UDP_PACKET_PAYLOAD[curMsgChar++] = 0; // Terminate the string
-						packet_length = UDP_PACKET_PAYLOAD_OFFSET + curMsgChar;
+						packet_length = UDP_PACKET_PAYLOAD_OFFSET + curMsgChar + userChar;
 						transmit_buffer[UDP_PACKET_LENGTH_OFFSET] = packet_length >> 8;
 						transmit_buffer[UDP_PACKET_LENGTH_OFFSET + 1] = packet_length & 0xff;
 						for (i = 441; i < 480; i++)
@@ -343,19 +318,19 @@ int main()
 						//___________________________________________________________________________________
 						//Archive & Display Message; Update Status...
 						//___________________________________________________________________________________
-						if (TransmitPacket(transmit_buffer, UDP_PACKET_PAYLOAD_OFFSET + curMsgChar + 1)==DMFE_SUCCESS && curMsgChar > 1) {
-							if (curMsgChar < 79)
+						if (TransmitPacket(transmit_buffer, UDP_PACKET_PAYLOAD_OFFSET + curMsgChar + 1)==DMFE_SUCCESS && curMsgChar > 8) {
+							if (curMsgChar < 81)
 							{
 								if (current_line == 25)
 								{
-									for (k = 0; k < 409; k++)
+									for (k = 26; k < 409; k++)
 									{
 										for (j = 0; j < 640; j++)
 										{
 											Vga_Clr_Pixel(VGA_0_BASE, j, k);
 										}
 									}
-									current_line = 0;
+									current_line = 2;
 								}
 								for (j = 0; j < curMsgChar-1; j++)
 								{
@@ -364,18 +339,18 @@ int main()
 								put_vga_string("Message sent successfully.", 0, 26);
 								current_line++;
 							}
-							if (curMsgChar > 78)
+							if (curMsgChar > 80)
 							{
 								if (current_line == 24)
 								{
-									for (k = 0; k < 409; k++)
+									for (k = 26; k < 409; k++)
 									{
 										for (j = 0; j < 640; j++)
 										{
 											Vga_Clr_Pixel(VGA_0_BASE, j, k);
 										}
 									}
-									current_line = 0;
+									current_line = 2;
 								}
 								for (j = 0; j < 79; j++)
 								{
@@ -401,7 +376,7 @@ int main()
 							put_vga_string("Failed to send message.", 0, 26);
 						}
 						// reset data
-						for (curMsgChar=MAX_MSG_LENGTH-1; curMsgChar>0; curMsgChar--) {
+						for (curMsgChar=MAX_MSG_LENGTH_USER-1; curMsgChar>0; curMsgChar--) {
 							UDP_PACKET_PAYLOAD[curMsgChar] = 0;
 						}
 					}
@@ -410,40 +385,61 @@ int main()
 					//Space Key...
 					//___________________________________________________________________________________
 				case 0x29:
-					UDP_PACKET_PAYLOAD[curMsgChar++] = ' ';
-					put_vga_char(' ', curLineChar, curMsgLine);
-					if (curLineChar == 77)
+					if (username_input == 1)
 					{
-						curMsgLine = curMsgLine + 1;
-						curLineChar = 0;
+						if (userChar < 10)
+						{
+							username[userChar++] = ' ';
+							put_vga_char(' ', userChar+26, 28);
+						}
 					}
 					else
 					{
-						curLineChar = curLineChar + 1;
+						UDP_PACKET_PAYLOAD[curMsgChar++] = ' ';
+						put_vga_char(' ', curLineChar, curMsgLine);
+						if (curLineChar == 77)
+						{
+							curMsgLine = curMsgLine + 1;
+							curLineChar = 0;
+						}
+						else
+						{
+							curLineChar++;
+						}
 					}
 					break;
 					//___________________________________________________________________________________
 					//Backspace Key...
 					//___________________________________________________________________________________
 				case 0x66:
-					if (curMsgChar != 0)
+					if (username_input == 1)
 					{
-						UDP_PACKET_PAYLOAD[curMsgChar--] = ' ';
-						if (curLineChar == 0)
+						if (userChar != 0)
 						{
-							curMsgLine = curMsgLine - 1;
-							curLineChar = 77;
+							username[userChar--] = ' ';
+							put_vga_char(' ', userChar+26, 28);
 						}
-						else if (curMsgLine == 30)
+					}
+					else{
+						if (curMsgChar != 0)
 						{
-							curMsgLine = curMsgLine - 1;
-							curLineChar = curLineChar - 1;
+							UDP_PACKET_PAYLOAD[curMsgChar--] = ' ';
+							if (curLineChar == 0)
+							{
+								curMsgLine = curMsgLine - 1;
+								curLineChar = 77;
+							}
+							else if (curMsgLine == 30)
+							{
+								curMsgLine = curMsgLine - 1;
+								curLineChar = curLineChar - 1;
+							}
+							else
+							{
+								curLineChar = curLineChar - 1;
+							}
+							put_vga_char(' ', curLineChar, curMsgLine);
 						}
-						else
-						{
-							curLineChar = curLineChar - 1;
-						}
-						put_vga_char(' ', curLineChar, curMsgLine);
 					}
 					break;
 				default:
