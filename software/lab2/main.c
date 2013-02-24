@@ -318,7 +318,7 @@ int main()
 						//___________________________________________________________________________________
 						//Archive & Display Message; Update Status...
 						//___________________________________________________________________________________
-						if (TransmitPacket(transmit_buffer, UDP_PACKET_PAYLOAD_OFFSET + curMsgChar + 1)==DMFE_SUCCESS && curMsgChar > 8) {
+						if (TransmitPacket(transmit_buffer, UDP_PACKET_PAYLOAD_OFFSET + curMsgChar + 1)==DMFE_SUCCESS && curMsgChar > userChar+2) {
 							if (curMsgChar < 81)
 							{
 								if (current_line == 25)
