@@ -150,6 +150,10 @@ int main()
 	int MAX_MSG_LENGTH_USER = 0;
 	char PAYLOAD_TEMP[128];
 	int shift = 0;
+	int cursor_x = 0;
+	int cursor_x_char = 10;
+	int cursor_y = 0;
+	int cursor_y_char = 10;
 	//unsigned int row, col;
 
 	VGA_Ctrl_Reg vga_ctrl_set;
@@ -160,9 +164,9 @@ int main()
 	vga_ctrl_set.VGA_Ctrl_Flags.CURSOR_ON = 0;
 
 	Vga_Write_Ctrl(VGA_0_BASE, vga_ctrl_set.Value);
-	Set_Pixel_On_Color(0,1023,0);
-	Set_Pixel_Off_Color(400,0,600);
-	Set_Cursor_Color(0,1023,0);
+	Set_Pixel_On_Color(900,1000,1000);
+	Set_Pixel_Off_Color(0,300,300);
+	Set_Cursor_Color(900,1000,1000);
 
 	// Initialize the LCD and display a welcome message
 	LCD_Init();
@@ -211,18 +215,30 @@ int main()
 		Vga_Set_Pixel(VGA_0_BASE, i, 435);
 	}
 	put_vga_string("Enter your username here: ", 0, 28);
-	for (;;) {
-		//___________________________________________________________________________________
-		//User Input...
-		//___________________________________________________________________________________
+	cursor_x_char = 26;
+	cursor_y_char = 28;
+	cursor_x = cursor_x_char*8;
+	cursor_y = cursor_y_char*16;
+	for (j = cursor_y; j < cursor_y+16; j++)
+	{
+		Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+	}
+
+	//___________________________________________________________________________________
+	//User Input...
+	//___________________________________________________________________________________
+	for (;;)
+	{
 		status = read_make_code(&decode_mode, &key);
-		if (status == PS2_SUCCESS) {
+		if (status == PS2_SUCCESS)
+		{
 			//___________________________________________________________________________________
 			//Display user input...
 			//___________________________________________________________________________________
-			switch ( decode_mode ) {
+			switch ( decode_mode )
+			{
 			case KB_ASCII_MAKE_CODE :
-				printf ("%c", key);
+				printf(" MAKE CODE :\t%X\n", key ); //print other unknown breakcode
 				if (shift == 1)
 				{
 					switch (key)
@@ -300,9 +316,6 @@ int main()
 					case 93:
 						key = 125;
 						break;
-					case 92:
-						key = 124;
-						break;
 					case 59:
 						key = 58;
 						break;
@@ -325,6 +338,17 @@ int main()
 					if (userChar < 10)
 					{
 						username[userChar] = key;
+						for (j = cursor_y; j < cursor_y+16; j++)
+						{
+							for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+						}
+						cursor_x_char++;
+						cursor_x = cursor_x_char*8;
+						cursor_y = cursor_y_char*16;
+						for (j = cursor_y; j < cursor_y+16; j++)
+						{
+							Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+						}
 						put_vga_char(key, 26+userChar, 28);
 						userChar++;
 					}
@@ -333,12 +357,27 @@ int main()
 				{
 					if (curMsgChar < MAX_MSG_LENGTH_USER) {
 						UDP_PACKET_PAYLOAD[curMsgChar] = key;
+						//
+						for (j = cursor_y; j < cursor_y+16; j++)
+						{
+							for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+						}
+						cursor_x_char++;
+						cursor_x = cursor_x_char*8;
+						cursor_y = cursor_y_char*16;
+						for (j = cursor_y; j < cursor_y+16; j++)
+						{
+							Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+						}
+						//
 						put_vga_char(key, curLineChar, curMsgLine );
 						curMsgChar++;
 						curLineChar++;
 						if (curLineChar == 78) {
 							curLineChar = 0;
 							curMsgLine = curMsgLine + 1;
+							cursor_x_char = 0;
+							cursor_y_char = 29;
 						}
 						if (curMsgChar == 1) {
 							for (i = 411; i < 435; i++)
@@ -378,6 +417,20 @@ int main()
 							put_vga_char(username[j], j+10, 0);
 						}
 						put_vga_string("Enter your message here: ", 0, 28);
+						//
+						for (j = cursor_y; j < cursor_y+16; j++)
+						{
+							for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+						}
+						cursor_x_char = 25;
+						cursor_y_char = 28;
+						cursor_x = cursor_x_char*8;
+						cursor_y = cursor_y_char*16;
+						for (j = cursor_y; j < cursor_y+16; j++)
+						{
+							Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+						}
+						//
 						username_input = 0;
 						MAX_MSG_LENGTH_USER = MAX_MSG_LENGTH - userChar + 1 - 2;
 					}
@@ -411,6 +464,18 @@ int main()
 						curLineChar = 25;
 						curMsgLine = 28;
 						put_vga_string("Enter your message here: ", 0, 28);
+						for (j = cursor_y; j < cursor_y+16; j++)
+						{
+							for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+						}
+						cursor_x_char = 25;
+						cursor_y_char = 28;
+						cursor_x = cursor_x_char*8;
+						cursor_y = cursor_y_char*16;
+						for (j = cursor_y; j < cursor_y+16; j++)
+						{
+							Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+						}
 						//___________________________________________________________________________________
 						//Archive & Display Message; Update Status...
 						//___________________________________________________________________________________
@@ -492,6 +557,17 @@ int main()
 						if (userChar < 10)
 						{
 							username[userChar++] = ' ';
+							for (j = cursor_y; j < cursor_y+16; j++)
+							{
+								for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+							}
+							cursor_x_char++;
+							cursor_x = cursor_x_char*8;
+							cursor_y = cursor_y_char*16;
+							for (j = cursor_y; j < cursor_y+16; j++)
+							{
+								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+							}
 							put_vga_char(' ', userChar+26, 28);
 						}
 					}
@@ -503,12 +579,37 @@ int main()
 						{
 							curMsgLine = curMsgLine + 1;
 							curLineChar = 0;
+							for (j = cursor_y; j < cursor_y+16; j++)
+							{
+								for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+							}
+							cursor_x_char = 0;
+							cursor_y_char = 29;
+							cursor_x = cursor_x_char*8;
+							cursor_y = cursor_y_char*16;
+							for (j = cursor_y; j < cursor_y+16; j++)
+							{
+								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+							}
 						}
 						else
 						{
 							curLineChar++;
+							for (j = cursor_y; j < cursor_y+16; j++)
+							{
+								for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+							}
+							cursor_x_char++;
+							cursor_x = cursor_x_char*8;
+							cursor_y = cursor_y_char*16;
+							for (j = cursor_y; j < cursor_y+16; j++)
+							{
+								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+							}
 						}
 					}
+					//
+					//
 					break;
 					//___________________________________________________________________________________
 					//Backspace Key...
@@ -519,6 +620,19 @@ int main()
 						if (userChar != 0)
 						{
 							username[userChar--] = ' ';
+							//
+							for (j = cursor_y; j < cursor_y+16; j++)
+							{
+								for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+							}
+							cursor_x_char--;
+							cursor_x = cursor_x_char*8;
+							cursor_y = cursor_y_char*16;
+							for (j = cursor_y; j < cursor_y+16; j++)
+							{
+								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+							}
+							//
 							put_vga_char(' ', userChar+26, 28);
 						}
 					}
@@ -530,25 +644,59 @@ int main()
 							{
 								curMsgLine = curMsgLine - 1;
 								curLineChar = 77;
+								for (j = cursor_y; j < cursor_y+16; j++)
+								{
+									for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+								}
+								cursor_x_char = 77;
+								cursor_y_char--;
+								cursor_x = cursor_x_char*8;
+								cursor_y = cursor_y_char*16;
+								for (j = cursor_y; j < cursor_y+16; j++)
+								{
+									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+								}
+
 							}
 							else if (curMsgLine == 30)
 							{
-								curMsgLine = curMsgLine - 1;
-								curLineChar = curLineChar - 1;
+								curMsgLine--;
+								curLineChar--;
+								for (j = cursor_y; j < cursor_y+16; j++)
+								{
+									for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+								}
+								cursor_x = cursor_x_char*8;
+								cursor_y = cursor_y_char*16;
+								for (j = cursor_y; j < cursor_y+16; j++)
+								{
+									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+								}
 							}
 							else
 							{
 								curLineChar = curLineChar - 1;
+								//
+								for (j = cursor_y; j < cursor_y+16; j++)
+								{
+									for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+								}
+								cursor_x_char--;
+								cursor_x = cursor_x_char*8;
+								cursor_y = cursor_y_char*16;
+								for (j = cursor_y; j < cursor_y+16; j++)
+								{
+									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+								}
+								//
 							}
-							put_vga_char(' ', curLineChar, curMsgLine);
+							//put_vga_char(' ', curLineChar, curMsgLine);
 						}
 					}
 					break;
 				default:
 					printf(" MAKE CODE :\t%X\n", key ); //print other unknown breakcode
 				}
-
-
 				break ;
 				case KB_BREAK_CODE :
 					switch (key)
@@ -571,6 +719,5 @@ int main()
 
 	ErrorExit:
 	printf("Program terminated with an error condition\n");
-
 	return 1;
 }
