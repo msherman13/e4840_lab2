@@ -339,9 +339,7 @@ int main()
 					{
 						username[userChar] = key;
 						for (j = cursor_y; j < cursor_y+16; j++)
-						{
-							for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
-						}
+							Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
 						cursor_x_char++;
 						cursor_x = cursor_x_char*8;
 						cursor_y = cursor_y_char*16;
@@ -359,9 +357,7 @@ int main()
 						UDP_PACKET_PAYLOAD[curMsgChar] = key;
 						//
 						for (j = cursor_y; j < cursor_y+16; j++)
-						{
-							for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
-						}
+							Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
 						cursor_x_char++;
 						cursor_x = cursor_x_char*8;
 						cursor_y = cursor_y_char*16;
@@ -420,7 +416,8 @@ int main()
 						//
 						for (j = cursor_y; j < cursor_y+16; j++)
 						{
-							for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+							for (i = cursor_x+1; i < cursor_x+8; i++)
+								Vga_Clr_Pixel(VGA_0_BASE, i, j);
 						}
 						cursor_x_char = 25;
 						cursor_y_char = 28;
@@ -558,53 +555,52 @@ int main()
 						{
 							username[userChar++] = ' ';
 							for (j = cursor_y; j < cursor_y+16; j++)
-							{
-								for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
-							}
+								Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
 							cursor_x_char++;
 							cursor_x = cursor_x_char*8;
 							cursor_y = cursor_y_char*16;
+							put_vga_char(' ', userChar+26, 28);
 							for (j = cursor_y; j < cursor_y+16; j++)
 							{
 								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
 							}
-							put_vga_char(' ', userChar+26, 28);
 						}
 					}
 					else
 					{
-						UDP_PACKET_PAYLOAD[curMsgChar++] = ' ';
-						put_vga_char(' ', curLineChar, curMsgLine);
-						if (curLineChar == 77)
+						if (curMsgChar < MAX_MSG_LENGTH_USER)
 						{
-							curMsgLine = curMsgLine + 1;
-							curLineChar = 0;
-							for (j = cursor_y; j < cursor_y+16; j++)
+							UDP_PACKET_PAYLOAD[curMsgChar++] = ' ';
+							put_vga_char(' ', curLineChar, curMsgLine);
+							if (curLineChar == 77)
 							{
-								for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+								curMsgLine = curMsgLine + 1;
+								curLineChar = 0;
+								for (j = cursor_y; j < cursor_y+16; j++)
+									Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+								cursor_x_char = 0;
+								cursor_y_char = 29;
+								cursor_x = cursor_x_char*8+1;
+								cursor_y = cursor_y_char*16;
+								for (j = cursor_y; j < cursor_y+16; j++)
+								{
+									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+								}
+
 							}
-							cursor_x_char = 0;
-							cursor_y_char = 29;
-							cursor_x = cursor_x_char*8;
-							cursor_y = cursor_y_char*16;
-							for (j = cursor_y; j < cursor_y+16; j++)
+							else
 							{
-								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
-							}
-						}
-						else
-						{
-							curLineChar++;
-							for (j = cursor_y; j < cursor_y+16; j++)
-							{
-								for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
-							}
-							cursor_x_char++;
-							cursor_x = cursor_x_char*8;
-							cursor_y = cursor_y_char*16;
-							for (j = cursor_y; j < cursor_y+16; j++)
-							{
-								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+								curLineChar++;
+								for (j = cursor_y; j < cursor_y+16; j++)
+									Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+								cursor_x_char++;
+								cursor_x = cursor_x_char*8;
+								cursor_y = cursor_y_char*16;
+								put_vga_char(' ', curLineChar, curMsgLine);
+								for (j = cursor_y; j < cursor_y+16; j++)
+								{
+									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+								}
 							}
 						}
 					}
