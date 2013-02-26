@@ -195,11 +195,11 @@ DECODE_STATE get_next_state(DECODE_STATE state,
 		else if (byte == 0x12 || byte == 0x14)
 		{
 			idx = get_single_byte_make_code_index(byte);
-			if ( (idx < 40 || idx == 68 || idx > 79) && ( idx != NUM_SCAN_CODES ) )
-			{
+//			if ( (idx < 40 || idx == 68 || idx > 79) && ( idx != NUM_SCAN_CODES ) )
+//			{
 				*decode_mode = KB_LONG_BINARY_MAKE_CODE;
 				*buf= shift_ascii_codes[idx];
-			}
+			//}
 			next_state = STATE_DONE;
 		}
 		else
@@ -214,6 +214,7 @@ DECODE_STATE get_next_state(DECODE_STATE state,
 			next_state = STATE_DONE;
 		} else
 		{
+		      next_state = STATE_BREAK_CODE;
 		}
 		break;
 	default:

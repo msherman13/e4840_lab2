@@ -154,6 +154,8 @@ int main()
 	int cursor_x_char = 10;
 	int cursor_y = 0;
 	int cursor_y_char = 10;
+	int at_beginning = 1;
+	int at_end = 1;
 	//unsigned int row, col;
 
 	VGA_Ctrl_Reg vga_ctrl_set;
@@ -388,6 +390,7 @@ int main()
 				}
 				break ;
 			case KB_BINARY_MAKE_CODE :
+				printf(" MAKE CODE :\t%X\n", key ); //print other unknown breakcode
 				switch (key) {
 				//___________________________________________________________________________________
 				//Enter Key...
@@ -618,7 +621,7 @@ int main()
 							username[userChar--] = ' ';
 							//
 							for (j = cursor_y; j < cursor_y+16; j++)
-									Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+								Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
 							cursor_x_char--;
 							cursor_x = cursor_x_char*8;
 							cursor_y = cursor_y_char*16;
@@ -639,7 +642,7 @@ int main()
 								curMsgLine--;
 								curLineChar = 77;
 								for (j = cursor_y; j < cursor_y+16; j++)
-										Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+									Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
 								cursor_x_char = 77;
 								cursor_y_char--;
 								cursor_x = cursor_x_char*8;
@@ -664,21 +667,21 @@ int main()
 									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
 								}
 							}
-//							else if (curMsgLine == 30)
-//							{
-//								curMsgLine--;
-//								curLineChar--;
-//								for (j = cursor_y; j < cursor_y+16; j++)
-//								{
-//									for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
-//								}
-//								cursor_x = cursor_x_char*8;
-//								cursor_y = cursor_y_char*16;
-//								for (j = cursor_y; j < cursor_y+16; j++)
-//								{
-//									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
-//								}
-//							}
+							//							else if (curMsgLine == 30)
+							//							{
+							//								curMsgLine--;
+							//								curLineChar--;
+							//								for (j = cursor_y; j < cursor_y+16; j++)
+							//								{
+							//									for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+							//								}
+							//								cursor_x = cursor_x_char*8;
+							//								cursor_y = cursor_y_char*16;
+							//								for (j = cursor_y; j < cursor_y+16; j++)
+							//								{
+							//									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+							//								}
+							//							}
 							else
 							{
 								curLineChar--;
@@ -701,12 +704,61 @@ int main()
 				}
 				break ;
 				case KB_BREAK_CODE :
+					printf(" MAKE CODE :\t%X\n", key ); //print other unknown breakcode
+
 					switch (key)
 					{
 					case 0x12:
 					case 0x59:
 						shift = 0;
 						break;
+					case 0x6b:
+						if (username_input == 1)
+						{
+							for (j = cursor_y; j < cursor_y+16; j++)
+								Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+//							cursor_x_char--;
+//							cursor_x = cursor_x_char*8;
+//							cursor_y = cursor_y_char*16;
+//							for (j = cursor_y; j < cursor_y+16; j++)
+//							{
+//								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+//							}
+						}
+						else
+							for (j = cursor_y; j < cursor_y+16; j++)
+								Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+							cursor_x_char--;
+							cursor_x = cursor_x_char*8;
+							cursor_y = cursor_y_char*16;
+							for (j = cursor_y; j < cursor_y+16; j++)
+							{
+								Vga_Set_Pixel(VGA_0_BASE, cursor_x-1, j);
+							}
+
+					case 0x74:
+						if (username_input == 1)
+						{
+							for (j = cursor_y; j < cursor_y+16; j++)
+								Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+							cursor_x_char++;
+							cursor_x = cursor_x_char*8;
+							cursor_y = cursor_y_char*16;
+							for (j = cursor_y; j < cursor_y+16; j++)
+							{
+								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+							}
+						}
+						else
+							for (j = cursor_y; j < cursor_y+16; j++)
+								Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+//							cursor_x_char++;
+//							cursor_x = cursor_x_char*8;
+//							cursor_y = cursor_y_char*16;
+//							for (j = cursor_y; j < cursor_y+16; j++)
+//							{
+//								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+//							}
 					}
 					default :
 						break ;
