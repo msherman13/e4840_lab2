@@ -664,14 +664,15 @@ int main()
 									Vga_Clr_Pixel(VGA_0_BASE, j, i);
 								}
 							}
-							for (i = userChar; i > cursor_x_char-1-26; i--)
+							for (i = cursor_x_char-27; i < userChar; i++)
 							{
 								username[i] = username[i+1];
 							}
-							username[cursor_x_char-1-26] = ' ';
+							put_vga_char(' ', userChar+26-1, 28);
+							userChar--;
 							for (j = cursor_y; j < cursor_y+16; j++)
 								Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
-							for (i = cursor_x_char-26; i < userChar+1; i++)
+							for (i = cursor_x_char-27; i < userChar; i++)
 								put_vga_char(username[i], i+26, 28);
 							cursor_x_char--;
 							cursor_x = (cursor_x_char*8)-1;
@@ -680,7 +681,6 @@ int main()
 							{
 								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
 							}
-							userChar--;
 						}
 					}
 					else{
