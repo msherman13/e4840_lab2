@@ -618,18 +618,16 @@ int main()
 							username[userChar--] = ' ';
 							//
 							for (j = cursor_y; j < cursor_y+16; j++)
-							{
-								for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
-							}
+									Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
 							cursor_x_char--;
 							cursor_x = cursor_x_char*8;
 							cursor_y = cursor_y_char*16;
+							put_vga_char(' ', userChar+26, 28);
 							for (j = cursor_y; j < cursor_y+16; j++)
 							{
 								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
 							}
 							//
-							put_vga_char(' ', userChar+26, 28);
 						}
 					}
 					else{
@@ -638,55 +636,63 @@ int main()
 							UDP_PACKET_PAYLOAD[curMsgChar--] = ' ';
 							if (curLineChar == 0)
 							{
-								curMsgLine = curMsgLine - 1;
+								curMsgLine--;
 								curLineChar = 77;
 								for (j = cursor_y; j < cursor_y+16; j++)
-								{
-									for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
-								}
+										Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
 								cursor_x_char = 77;
 								cursor_y_char--;
 								cursor_x = cursor_x_char*8;
 								cursor_y = cursor_y_char*16;
+								put_vga_char(' ', curLineChar, curMsgLine);
 								for (j = cursor_y; j < cursor_y+16; j++)
 								{
 									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
 								}
-
 							}
-							else if (curMsgLine == 30)
+							else if (curLineChar == 1)
 							{
-								curMsgLine--;
 								curLineChar--;
 								for (j = cursor_y; j < cursor_y+16; j++)
-								{
-									for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
-								}
-								cursor_x = cursor_x_char*8;
+									Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+								cursor_x_char--;
+								cursor_x = cursor_x_char*8+1;
 								cursor_y = cursor_y_char*16;
+								put_vga_char(' ', curLineChar, curMsgLine);
 								for (j = cursor_y; j < cursor_y+16; j++)
 								{
 									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
 								}
 							}
+//							else if (curMsgLine == 30)
+//							{
+//								curMsgLine--;
+//								curLineChar--;
+//								for (j = cursor_y; j < cursor_y+16; j++)
+//								{
+//									for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
+//								}
+//								cursor_x = cursor_x_char*8;
+//								cursor_y = cursor_y_char*16;
+//								for (j = cursor_y; j < cursor_y+16; j++)
+//								{
+//									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+//								}
+//							}
 							else
 							{
-								curLineChar = curLineChar - 1;
-								//
+								curLineChar--;
 								for (j = cursor_y; j < cursor_y+16; j++)
-								{
-									for (i = cursor_x+1; i < cursor_x+8; i++) Vga_Clr_Pixel(VGA_0_BASE, i, j);
-								}
+									Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
 								cursor_x_char--;
 								cursor_x = cursor_x_char*8;
 								cursor_y = cursor_y_char*16;
+								put_vga_char(' ', curLineChar, curMsgLine);
 								for (j = cursor_y; j < cursor_y+16; j++)
 								{
 									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
 								}
-								//
 							}
-							//put_vga_char(' ', curLineChar, curMsgLine);
 						}
 					}
 					break;
