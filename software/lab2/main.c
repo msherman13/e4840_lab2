@@ -43,8 +43,7 @@ unsigned char transmit_buffer[] = {
 		0x45,                // version (IPv4), header length = 20 bytes
 		0x00,                // differentiated services field
 		0x00,0x9C,           // total length: 20 bytes for IP header +
-		// 8 bytes for UDP header + 128 bytes for payload
-		0x3d, 0x35,          // packet ID
+		0x00, 0x00,          // packet ID
 		0x00,                // flags
 		0x00,                // fragment offset
 		0x80,                // time-to-live
@@ -54,6 +53,7 @@ unsigned char transmit_buffer[] = {
 		0xc0,0xa8,0x01,0xff, // destination IP address
 
 		// UDP Header
+		// 8 bytes for UDP header + 128 bytes for payload
 		0x67,0xd9, // source port port (26585: garbage)
 		0x27,0x2b, // destination port (10027: garbage)
 		0x00,0x88, // length (136: 8 for UDP header + 128 for data)
@@ -81,6 +81,8 @@ unsigned char transmit_buffer[] = {
 static void ethernet_interrupt_handler() {
 	unsigned int receive_status;
 	int i;
+	int j;
+	int termination;
 
 	receive_status = ReceivePacket(receive_buffer, &receive_buffer_length);
 
@@ -88,10 +90,19 @@ static void ethernet_interrupt_handler() {
 
 #if 1
 		printf("\n\nReceive Packet Length = %d", receive_buffer_length);
+		for (i = 411; i < 435; i++)
+		{
+			for (j = 0; j < 640; j++)
+			{
+				Vga_Clr_Pixel(VGA_0_BASE, j, i);
+			}
+		}
 		for(i=0;i<receive_buffer_length;i++) {
 			if (i%8==0) printf("\n");
+			put_vga_string("Message received.", 0, 26);
 			printf("0x%.2X,", receive_buffer[i]);
 		}
+		//put_vga_char(' ', i,2);
 		printf("\n");
 #endif
 
@@ -105,6 +116,9 @@ static void ethernet_interrupt_handler() {
 					if (receive_buffer_length >= UDP_PACKET_PAYLOAD_OFFSET) {
 						printf("Received: %s\n",
 								receive_buffer + UDP_PACKET_PAYLOAD_OFFSET);
+						for (i = UDP_PACKET_PAYLOAD_OFFSET; i < 79; i++)
+							put_vga_char(' ', i-UDP_PACKET_PAYLOAD_OFFSET, 2);
+						put_vga_string(receive_buffer + UDP_PACKET_PAYLOAD_OFFSET, 0, 2);
 					}
 				} else {
 					printf("Received non-UDP packet\n");
@@ -156,7 +170,7 @@ int main()
 	int cursor_y_char = 10;
 	int at_beginning = 1;
 	int at_end = 1;
-	//unsigned int row, col;
+//	unsigned char packet_id[];
 
 	VGA_Ctrl_Reg vga_ctrl_set;
 
@@ -503,7 +517,8 @@ int main()
 							MAX_MSG_LENGTH_USER = MAX_MSG_LENGTH - userChar + 1 - 2;
 						}
 					}
-					else{
+					else
+					{
 						for (i = 0; i < userChar-1; i++)
 						{
 							PAYLOAD_TEMP[i] = username[i];
@@ -609,6 +624,17 @@ int main()
 						for (curMsgChar=MAX_MSG_LENGTH_USER-1; curMsgChar>0; curMsgChar--) {
 							UDP_PACKET_PAYLOAD[curMsgChar] = 0;
 						}
+						if (transmit_buffer[20] != 0xff)
+						{
+							transmit_buffer[20]++;
+						}
+						else
+						{
+							transmit_buffer[19]++;
+							transmit_buffer[20] = 0x00;
+						}
+						printf ("\n %hX", transmit_buffer[19]);
+						printf ("\n %hX", transmit_buffer[20]);
 					}
 					break;
 				case 0x12:
@@ -842,8 +868,8 @@ int main()
 									}
 									if (curMsgLine == 29)
 									{
-//										for (i = cursor_x_char-26; i < 53; i++)
-//											put_vga_char(UDP_PACKET_PAYLOAD[i], i+25, 28);
+										//										for (i = cursor_x_char-26; i < 53; i++)
+										//											put_vga_char(UDP_PACKET_PAYLOAD[i], i+25, 28);
 										for (i = cursor_x_char-25-1; i < 53; i++)
 											put_vga_char(UDP_PACKET_PAYLOAD[i], i+25, 28);
 										for (i = 0; i < curMsgChar-53; i++)//ok
@@ -860,8 +886,8 @@ int main()
 									cursor_x_char--;
 									for (j = cursor_y; j < cursor_y+16; j++)
 										Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
-//									for (i = cursor_x_char-26; i < curMsgChar; i++)
-//										put_vga_char(UDP_PACKET_PAYLOAD[i], i+25, 28);
+									//									for (i = cursor_x_char-26; i < curMsgChar; i++)
+									//										put_vga_char(UDP_PACKET_PAYLOAD[i], i+25, 28);
 									cursor_x = (cursor_x_char*8)-1;
 									cursor_y = cursor_y_char*16;
 									for (j = cursor_y; j < cursor_y+16; j++)
