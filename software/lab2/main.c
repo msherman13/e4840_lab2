@@ -370,26 +370,62 @@ int main()
 				else
 				{
 					if (curMsgChar < MAX_MSG_LENGTH_USER) {
-						UDP_PACKET_PAYLOAD[curMsgChar] = key;
-						//
+						if (cursor_y_char == 28)
+						{
+							for (i = curMsgChar+1; i > cursor_x_char-25; i--)
+							{
+								UDP_PACKET_PAYLOAD[i] = UDP_PACKET_PAYLOAD[i-1];
+							}
+							UDP_PACKET_PAYLOAD[cursor_x_char-25] = key;
+
+						}
+						else if (cursor_y_char == 29)
+						{
+							for (i = curMsgChar+1; i > cursor_x_char+52; i--)
+							{
+								UDP_PACKET_PAYLOAD[i] = UDP_PACKET_PAYLOAD[i-1];
+							}
+							UDP_PACKET_PAYLOAD[cursor_x_char+53] = key;
+
+						}
 						for (j = cursor_y; j < cursor_y+16; j++)
 							Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+						if (curMsgLine == 28 && cursor_y_char == 28)
+						{
+							for (i = cursor_x_char-25; i < curMsgChar+1; i++)
+								put_vga_char(UDP_PACKET_PAYLOAD[i], i+25, cursor_y_char);
+						}
+						if (curMsgLine == 29 && cursor_y_char == 28)
+						{
+							for (i = cursor_x_char-25; i < 53; i++)
+								put_vga_char(UDP_PACKET_PAYLOAD[i], i+25, cursor_y_char);
+							for (i = 0; i < curMsgChar+1-53; i++)
+								put_vga_char(UDP_PACKET_PAYLOAD[i+53], i, curMsgLine);
+						}
+						else if (curMsgLine == 29 && cursor_y_char == 29)
+						{
+							for (i = cursor_x_char; i < curMsgChar+1-53; i++)
+								put_vga_char(UDP_PACKET_PAYLOAD[i+53], i, cursor_y_char);
+						}
+
 						cursor_x_char++;
 						cursor_x = (cursor_x_char*8)-1;
 						cursor_y = cursor_y_char*16;
-						put_vga_char(key, curLineChar, curMsgLine );
+						//						put_vga_char(key, curLineChar, curMsgLine );
 						for (j = cursor_y; j < cursor_y+16; j++)
 						{
 							Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
 						}
-						//
 						curMsgChar++;
 						curLineChar++;
+						if (cursor_x_char == 78 && cursor_y_char == 28)
+						{
+							cursor_x_char = 0;
+							cursor_y_char = 29;
+						}
 						if (curLineChar == 78) {
 							curLineChar = 0;
 							curMsgLine = curMsgLine + 1;
-							cursor_x_char = 0;
-							cursor_y_char = 29;
 						}
 						if (curMsgChar == 1) {
 							for (i = 411; i < 435; i++)
@@ -797,35 +833,45 @@ int main()
 					case 0x74:
 						if (username_input == 1)
 						{
-							for (j = cursor_y; j < cursor_y+16; j++)
-								Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
-							cursor_x_char++;
-							cursor_x = (cursor_x_char*8)-1;
-							cursor_y = cursor_y_char*16;
-							for (j = cursor_y; j < cursor_y+16; j++)
+							if (cursor_x_char-26 < userChar)
 							{
-								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+								for (j = cursor_y; j < cursor_y+16; j++)
+									Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+								cursor_x_char++;
+								cursor_x = (cursor_x_char*8)-1;
+								cursor_y = cursor_y_char*16;
+								for (j = cursor_y; j < cursor_y+16; j++)
+								{
+									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+								}
 							}
 						}
 						else
 						{
-							for (j = cursor_y; j < cursor_y+16; j++)
-								Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
-							cursor_x_char++;
-							cursor_x = (cursor_x_char*8)-1;
-							cursor_y = cursor_y_char*16;
-							for (j = cursor_y; j < cursor_y+16; j++)
-							{
-								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
-							}
+//							if (cursor_y_char = 28)
+//							{
+								if (cursor_x_char < curLineChar)
+								{
+									for (j = cursor_y; j < cursor_y+16; j++)
+										Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+									cursor_x_char++;
+									cursor_x = (cursor_x_char*8)-1;
+									cursor_y = cursor_y_char*16;
+									for (j = cursor_y; j < cursor_y+16; j++)
+									{
+										Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+									}
+								}
+//							}
 						}
 						break;
-					}
 					default :
 						break ;
+					}
 			}
 		}
-		else {
+		else
+		{
 			printf(" Keyboard error ....\n");
 		}
 	}
