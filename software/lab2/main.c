@@ -441,7 +441,7 @@ int main()
 				break ;
 			case KB_BINARY_MAKE_CODE :
 				printf(" MAKE CODE :\t%X\n", key ); //print other unknown breakcode
-				switch (key) {
+				switch (key ) {
 				//___________________________________________________________________________________
 				//Enter Key...
 				//___________________________________________________________________________________
@@ -818,14 +818,30 @@ int main()
 						{
 							if (cursor_x_char != 25)
 							{
-								for (j = cursor_y; j < cursor_y+16; j++)
-									Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
-								cursor_x_char--;
-								cursor_x = (cursor_x_char*8)-1;
-								cursor_y = cursor_y_char*16;
-								for (j = cursor_y; j < cursor_y+16; j++)
+								if (cursor_x_char != 0)
 								{
-									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+									for (j = cursor_y; j < cursor_y+16; j++)
+										Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+									cursor_x_char--;
+									cursor_x = (cursor_x_char*8)-1;
+									cursor_y = cursor_y_char*16;
+									for (j = cursor_y; j < cursor_y+16; j++)
+									{
+										Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+									}
+								}
+								else
+								{
+									for (j = cursor_y; j < cursor_y+16; j++)
+										Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+									cursor_x_char = 77;
+									cursor_y_char--;
+									cursor_x = (cursor_x_char*8)-1;
+									cursor_y = cursor_y_char*16;
+									for (j = cursor_y; j < cursor_y+16; j++)
+									{
+										Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+									}
 								}
 							}
 						}
@@ -848,9 +864,9 @@ int main()
 						}
 						else
 						{
-//							if (cursor_y_char = 28)
-//							{
-								if (cursor_x_char < curLineChar)
+							if (cursor_x_char != 77)
+							{
+								if (curMsgLine == 29 && cursor_y_char == 28)
 								{
 									for (j = cursor_y; j < cursor_y+16; j++)
 										Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
@@ -862,7 +878,54 @@ int main()
 										Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
 									}
 								}
-//							}
+								else
+								{
+									if (cursor_x_char < curLineChar)
+									{
+										for (j = cursor_y; j < cursor_y+16; j++)
+											Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+										cursor_x_char++;
+										cursor_x = (cursor_x_char*8)-1;
+										cursor_y = cursor_y_char*16;
+										for (j = cursor_y; j < cursor_y+16; j++)
+										{
+											Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+										}
+									}
+								}
+							}
+							else
+							{
+								if (curMsgLine == 29 && cursor_y_char == 28)
+								{
+									for (j = cursor_y; j < cursor_y+16; j++)
+										Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+									cursor_x_char = 0;
+									cursor_y_char++;
+									cursor_x = (cursor_x_char*8)-1;
+									cursor_y = cursor_y_char*16;
+									for (j = cursor_y; j < cursor_y+16; j++)
+									{
+										Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+									}
+								}
+//								else
+//								{
+//									if (cursor_x_char < curLineChar)
+//									{
+//										for (j = cursor_y; j < cursor_y+16; j++)
+//											Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
+//										cursor_x_char = 0;
+//										cursor_y_char++;
+//										cursor_x = (cursor_x_char*8)-1;
+//										cursor_y = cursor_y_char*16;
+//										for (j = cursor_y; j < cursor_y+16; j++)
+//										{
+//											Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
+//										}
+//									}
+//								}
+							}
 						}
 						break;
 					default :
