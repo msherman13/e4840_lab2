@@ -48,7 +48,7 @@ unsigned char transmit_buffer[] = {
 		0x00,                // fragment offset
 		0x80,                // time-to-live
 		0x11,                // protocol: 11 = UDP
-		0x00,0x00,           // header checksum: incorrect
+		0x00,0x00,           // header checksum
 		0xc0,0xa8,0x01,0x01, // source IP address
 		0xc0,0xa8,0x01,0xff, // destination IP address
 
@@ -83,6 +83,42 @@ static void ethernet_interrupt_handler() {
 	int i;
 	int j;
 	int termination;
+	int byte14;
+	int byte15;
+	int byte16;
+	int byte17;
+	int byte18;
+	int byte19;
+	int byte20;
+	int byte21;
+	int byte22;
+	int byte23;
+	int byte24;
+	int byte25;
+	int byte26;
+	int byte27;
+	int byte28;
+	int byte29;
+	int byte30;
+	int byte31;
+	int byte32;
+	int byte33;
+	int ip_header0;
+	int ip_header1;
+	int ip_header2;
+	int ip_header3;
+	int ip_header4;
+	int ip_header5;
+	int ip_header6;
+	int ip_header7;
+	int ip_header8;
+	int ip_header9;
+	int long crc_twos;
+	int crc_carry;
+	int crc_ones;
+	unsigned int long checksum;
+
+
 
 	receive_status = ReceivePacket(receive_buffer, &receive_buffer_length);
 
@@ -114,11 +150,57 @@ static void ethernet_interrupt_handler() {
 				if (receive_buffer[23] == 0x11) {
 					// A UDP packet
 					if (receive_buffer_length >= UDP_PACKET_PAYLOAD_OFFSET) {
-						printf("Received: %s\n",
-								receive_buffer + UDP_PACKET_PAYLOAD_OFFSET);
-						for (i = UDP_PACKET_PAYLOAD_OFFSET; i < 79; i++)
-							put_vga_char(' ', i-UDP_PACKET_PAYLOAD_OFFSET, 2);
-						put_vga_string(receive_buffer + UDP_PACKET_PAYLOAD_OFFSET, 0, 2);
+
+						byte14 = receive_buffer[14] << 8;
+						byte15 = receive_buffer[15];
+						byte16 = receive_buffer[16] << 8;
+						byte17 = receive_buffer[17];
+						byte18 = receive_buffer[18] << 8;
+						byte19 = receive_buffer[19];
+						byte20 = receive_buffer[20] << 8;
+						byte21 = receive_buffer[21];
+						byte22 = receive_buffer[22] << 8;
+						byte23 = receive_buffer[23];
+						byte24 = receive_buffer[24] << 8;
+						byte25 = receive_buffer[25];
+						byte26 = receive_buffer[26] << 8;
+						byte27 = receive_buffer[27];
+						byte28 = receive_buffer[28] << 8;
+						byte29 = receive_buffer[29];
+						byte30 = receive_buffer[30] << 8;
+						byte31 = receive_buffer[31];
+						byte32 = receive_buffer[32] << 8;
+						byte33 = receive_buffer[33];
+
+						ip_header0 = byte14 + byte15;
+						ip_header1 = byte16 + byte17;
+						ip_header2 = byte18 + byte19;
+						ip_header3 = byte20 + byte21;
+						ip_header4 = byte22 + byte23;
+						ip_header5 = byte24 + byte25;
+						ip_header6 = byte26 + byte27;
+						ip_header7 = byte28 + byte29;
+						ip_header8 = byte30 + byte31;
+						ip_header9 = byte32 + byte33;
+
+						crc_twos = ip_header0+ip_header1+ip_header2+ip_header3+ip_header4+ip_header5+ip_header6+ip_header7+ip_header8+ip_header9;
+						printf("\n %hx twos: ", crc_twos);
+						crc_carry = crc_twos >> 16;
+						printf("\n %hx carry: ", crc_carry);
+						crc_ones = crc_twos + crc_carry;
+						printf("\n ones: %hx", crc_ones);
+						checksum = (crc_ones ^ 0xFFFF);
+						printf("\n %hx checksum: ", checksum);
+						if (checksum == 0)
+						{
+							printf("Received: %s\n",receive_buffer + UDP_PACKET_PAYLOAD_OFFSET);
+							for (i = UDP_PACKET_PAYLOAD_OFFSET; i < 79; i++)
+								put_vga_char(' ', i-UDP_PACKET_PAYLOAD_OFFSET, 2);
+							put_vga_string(receive_buffer + UDP_PACKET_PAYLOAD_OFFSET, 0, 2);
+							printf("\n rcvd correct checksum: %hx", checksum);
+						}
+						else
+							printf("\n rcvd incorrect checksum: %hx", checksum);
 					}
 				} else {
 					printf("Received non-UDP packet\n");
@@ -203,8 +285,9 @@ int main()
 	int long crc_twos;
 	int crc_carry;
 	int crc_ones;
-	int long checksum;
-//	unsigned char packet_id[];
+	unsigned int long checksum;
+
+	//	unsigned char packet_id[];
 
 	VGA_Ctrl_Reg vga_ctrl_set;
 
@@ -718,11 +801,12 @@ int main()
 						//checksum = ~crc_ones;
 						checksum = (crc_ones ^ 0xFFFF); // invert bits
 						printf("\n %hx checksum: ", checksum);
-						//debug
-						/*int test_sum = 0;
-						for (i=14; i < 34; i++) {
-							test_sum = transmit_buffer[i]
-						}*/
+
+						transmit_buffer[24] = checksum >> 8;
+						transmit_buffer[25] = checksum;
+						printf("\n %hx checksum_stored: ", transmit_buffer[24]);
+						printf("\n %hx checksum_stored: ", transmit_buffer[25]);
+
 					}
 					break;
 				case 0x12:
