@@ -1,10 +1,15 @@
-/*
- * CSEE 4840 Lab 2: Ethernet packet send and receive
- *
- * Stephen A. Edwards et al.
- *
- */
+//**********************************************************************************************//
+//*********************************    Miles Sherman   *****************************************//
+//**********************************************************************************************//
+//*************************************    Lab 2   *********************************************//
+//**********************************************************************************************//
+//***************    Sincere apologies for the disorganization of my code :)   *****************//
+//**********************************************************************************************//
 
+
+//**********************************************************************************************//
+//*****************************    Includes & Global Variables   *******************************//
+//**********************************************************************************************//
 #include "basic_io.h"
 #include "DM9000A.h"
 #include <alt_types.h>
@@ -35,6 +40,10 @@ KB_CODE_TYPE decode_mode;
 
 #define UDP_PACKET_PAYLOAD (transmit_buffer + UDP_PACKET_PAYLOAD_OFFSET)
 
+
+//**********************************************************************************************//
+//***************************    Transmit Packet Initialization   ******************************//
+//**********************************************************************************************//
 unsigned char transmit_buffer[] = {
 		// Ethernet MAC header
 		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // Destination MAC address
@@ -80,6 +89,9 @@ unsigned char transmit_buffer[] = {
 		0x74, 0x65, 0x73, 0x74, 0x20, 0x6d, 0x73, 0x67
 };   
 
+//**********************************************************************************************//
+//*******************************    Receive Packet Handling   *********************************//
+//**********************************************************************************************//
 static void ethernet_interrupt_handler() {
 	unsigned int receive_status;
 	int i;
@@ -121,13 +133,8 @@ static void ethernet_interrupt_handler() {
 	int crc_ones;
 	unsigned int long checksum;
 	alt_u32 checksum_32;
-
-
-
 	receive_status = ReceivePacket(receive_buffer, &receive_buffer_length);
-
 	if (receive_status == DMFE_SUCCESS) {
-
 #if 1
 		printf("\n\nReceive Packet Length = %d", receive_buffer_length);
 		for (i = 411; i < 435; i++)
@@ -141,10 +148,8 @@ static void ethernet_interrupt_handler() {
 			if (i%8==0) printf("\n");
 			printf("0x%.2X,", receive_buffer[i]);
 		}
-		//put_vga_char(' ', i,2);
 		printf("\n");
 #endif
-
 		if (receive_buffer_length >= 14) {
 			//  A real Ethernet packet
 			if (receive_buffer[12] == 8 && receive_buffer[13] == 0 &&
@@ -154,8 +159,9 @@ static void ethernet_interrupt_handler() {
 					// A UDP packet
 					if (receive_buffer_length >= UDP_PACKET_PAYLOAD_OFFSET) {
 
-
-
+//**********************************************************************************************//
+//*****************************    Incoming Checksum Validation   ******************************//
+//**********************************************************************************************//
 						byte14 = receive_buffer[14] << 8;
 						byte15 = receive_buffer[15];
 						byte16 = receive_buffer[16] << 8;
@@ -176,7 +182,6 @@ static void ethernet_interrupt_handler() {
 						byte31 = receive_buffer[31];
 						byte32 = receive_buffer[32] << 8;
 						byte33 = receive_buffer[33];
-
 						ip_header0 = byte14 + byte15;
 						ip_header1 = byte16 + byte17;
 						ip_header2 = byte18 + byte19;
@@ -187,7 +192,6 @@ static void ethernet_interrupt_handler() {
 						ip_header7 = byte28 + byte29;
 						ip_header8 = byte30 + byte31;
 						ip_header9 = byte32 + byte33;
-
 						crc_twos = ip_header0+ip_header1+ip_header2+ip_header3+ip_header4+ip_header5+ip_header6+ip_header7+ip_header8+ip_header9;
 						printf("\n %hx twos: ", crc_twos);
 						crc_carry = crc_twos >> 16;
@@ -196,6 +200,10 @@ static void ethernet_interrupt_handler() {
 						printf("\n ones: %hx", crc_ones);
 						checksum = (crc_ones ^ 0xFFFF) & 0xFFFF; // invert bits
 						printf("\n %hx checksum: ", checksum);
+
+//**********************************************************************************************//
+//*******************************    Display Received Message   ********************************//
+//**********************************************************************************************//
 						if (!checksum)
 						{
 							put_vga_string("Message received.", 0, 26);
@@ -261,11 +269,9 @@ static void ethernet_interrupt_handler() {
 		} else {
 			printf("Malformed Ethernet packet\n");
 		}
-
 	} else {
 		printf("Error receiving packet\n");
 	}
-
 	/* Display the number of interrupts on the LEDs */
 	interrupt_number++;
 	outport(SEG7_DISPLAY_BASE, interrupt_number);
@@ -277,6 +283,9 @@ static void ethernet_interrupt_handler() {
 	dm9000a_iow(IMR, INTR_set);
 }
 
+//**********************************************************************************************//
+//*************************************    Begin Main   ****************************************//
+//**********************************************************************************************//
 int main()
 {
 	int i;
@@ -288,7 +297,6 @@ int main()
 	alt_u8 key = 0;
 	int status = 0;
 	unsigned int packet_length;
-	char line_tracker[24][78];
 	int username_input = 1;
 	int userChar = 0;
 	char username[10];
@@ -299,8 +307,6 @@ int main()
 	int cursor_x_char = 10;
 	int cursor_y = 0;
 	int cursor_y_char = 10;
-	int at_beginning = 1;
-	int at_end = 1;
 	int byte14;
 	int byte15;
 	int byte16;
@@ -311,8 +317,6 @@ int main()
 	int byte21;
 	int byte22;
 	int byte23;
-	int byte24;
-	int byte25;
 	int byte26;
 	int byte27;
 	int byte28;
@@ -326,7 +330,6 @@ int main()
 	int ip_header2;
 	int ip_header3;
 	int ip_header4;
-	int ip_header5;
 	int ip_header6;
 	int ip_header7;
 	int ip_header8;
@@ -336,35 +339,26 @@ int main()
 	int crc_ones;
 	unsigned int long checksum;
 
-	//	unsigned char packet_id[];
-
 	VGA_Ctrl_Reg vga_ctrl_set;
-
 	vga_ctrl_set.VGA_Ctrl_Flags.RED_ON    = 1;
 	vga_ctrl_set.VGA_Ctrl_Flags.GREEN_ON  = 1;
 	vga_ctrl_set.VGA_Ctrl_Flags.BLUE_ON   = 1;
 	vga_ctrl_set.VGA_Ctrl_Flags.CURSOR_ON = 0;
-
 	Vga_Write_Ctrl(VGA_0_BASE, vga_ctrl_set.Value);
 	Set_Pixel_On_Color(900,1000,1000);
 	Set_Pixel_Off_Color(0,300,300);
 	Set_Cursor_Color(900,1000,1000);
-
 	// Initialize the LCD and display a welcome message
 	LCD_Init();
 	LCD_Show_Text("Sup y'all");
-
 	// Clear the LEDs to zero (will display interrupt count)
 	outport(SEG7_DISPLAY_BASE, 0);
-
 	// Print a friendly welcome message
 	printf("4840 Lab 2 started\n");
-
 	// Initalize the DM9000 and the Ethernet interrupt handler
 	DM9000_init(mac_address);
 	interrupt_number = 0;
 	alt_irq_register(DM9000A_IRQ, NULL, (void*)ethernet_interrupt_handler);
-
 	// Initialize the keyboard
 	printf("Please wait three seconds to initialize keyboard\n");
 	clear_FIFO();
@@ -378,9 +372,10 @@ int main()
 		printf("Error: Unrecognized or no device on PS/2 port\n");
 		goto ErrorExit;
 	}
-	//___________________________________________________________________________________
-	// Initialize the VGA...
-	//___________________________________________________________________________________
+
+//**********************************************************************************************//
+//***********************************    Initialize VGA   **************************************//
+//**********************************************************************************************//
 	for (i = 0; i < 480; i++)
 	{
 		for (j = 0; j < 640; j++)
@@ -406,21 +401,22 @@ int main()
 		Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
 	}
 
-	//___________________________________________________________________________________
-	//User Input...
-	//___________________________________________________________________________________
+//**********************************************************************************************//
+//**********************************    Begin Input Mode   *************************************//
+//**********************************************************************************************//
 	for (;;)
 	{
 		status = read_make_code(&decode_mode, &key);
 		if (status == PS2_SUCCESS)
 		{
-			//___________________________________________________________________________________
-			//Display user input...
-			//___________________________________________________________________________________
 			switch ( decode_mode )
 			{
 			case KB_ASCII_MAKE_CODE :
 				printf(" MAKE CODE :\t%X\n", key ); //print other unknown breakcode
+
+//**********************************************************************************************//
+//*********************************    Shift Key Handling   ************************************//
+//**********************************************************************************************//
 				if (shift == 1)
 				{
 					switch (key)
@@ -515,6 +511,10 @@ int main()
 						break;
 					}
 				}
+
+//**********************************************************************************************//
+//*****************************    Username Input (Nomral Chars)   *****************************//
+//**********************************************************************************************//
 				if (username_input == 1)
 				{
 					if (userChar < 10)
@@ -547,6 +547,10 @@ int main()
 					else
 						put_vga_string("Cannot exceed maximum of 10 characters for username.", 0, 26);
 				}
+
+//**********************************************************************************************//
+//*****************************    Message Input (Nomral Chars)   ******************************//
+//**********************************************************************************************//
 				else
 				{
 					if (curMsgChar < MAX_MSG_LENGTH_USER) {
@@ -598,7 +602,6 @@ int main()
 						cursor_x_char++;
 						cursor_x = (cursor_x_char*8)-1;
 						cursor_y = cursor_y_char*16;
-						//						put_vga_char(key, curLineChar, curMsgLine );
 						for (j = cursor_y; j < cursor_y+16; j++)
 						{
 							Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
@@ -626,13 +629,15 @@ int main()
 					}
 				}
 				break ;
+
 			case KB_BINARY_MAKE_CODE :
 				printf(" MAKE CODE :\t%X\n", key ); //print other unknown breakcode
 				switch (key ) {
-				//___________________________________________________________________________________
-				//Enter Key...
-				//___________________________________________________________________________________
 				case  0x5a:
+
+//**********************************************************************************************//
+//******************************    Username Enter Key Handling   ******************************//
+//**********************************************************************************************//
 					if (username_input == 1)
 					{
 						if (userChar == 0)
@@ -683,11 +688,15 @@ int main()
 							MAX_MSG_LENGTH_USER = MAX_MSG_LENGTH - userChar + 1 - 2;
 						}
 					}
+//**********************************************************************************************//
+//*******************************    Message Enter Key Handling   ******************************//
+//**********************************************************************************************//
 					else
 					{
-						//___________________________________________________________________________________
-						//Checksum Calculator... (checksum hole = transmit_buffer[25] & transmit_buffer[26]
-						//___________________________________________________________________________________
+
+//**********************************************************************************************//
+//******************************    Outgoing Checksum Calculation   ****************************//
+//**********************************************************************************************//
 						byte14 = transmit_buffer[14] << 8;
 						byte15 = transmit_buffer[15];
 						byte16 = transmit_buffer[16] << 8;
@@ -706,7 +715,6 @@ int main()
 						byte31 = transmit_buffer[31];
 						byte32 = transmit_buffer[32] << 8;
 						byte33 = transmit_buffer[33];
-
 						ip_header0 = byte14 + byte15;
 						ip_header1 = byte16 + byte17;
 						ip_header2 = byte18 + byte19;
@@ -716,24 +724,22 @@ int main()
 						ip_header7 = byte28 + byte29;
 						ip_header8 = byte30 + byte31;
 						ip_header9 = byte32 + byte33;
-
 						crc_twos = ip_header0+ip_header1+ip_header2+ip_header3+ip_header4+ip_header6+ip_header7+ip_header8+ip_header9;
 						printf("\n %hx twos: ", crc_twos);
 						crc_carry = crc_twos >> 16;
 						printf("\n %hx carry: ", crc_carry);
 						crc_ones = crc_twos + crc_carry;
 						printf("\n ones: %hx", crc_ones);
-						//						checksum = ~crc_ones;
 						checksum = (crc_ones ^ 0xFFFF); // invert bits
 						printf("\n %hx checksum: ", checksum);
-
 						transmit_buffer[24] = checksum >> 8;
 						transmit_buffer[25] = checksum;
 						printf("\n %hx checksum_stored: ", transmit_buffer[24]);
 						printf("\n %hx checksum_stored: ", transmit_buffer[25]);
 
-
-
+//**********************************************************************************************//
+//*******************************    Archive Message in Payload   ******************************//
+//**********************************************************************************************//
 						for (i = 0; i < userChar-1; i++)
 						{
 							PAYLOAD_TEMP[i] = username[i];
@@ -775,9 +781,10 @@ int main()
 						{
 							Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
 						}
-						//___________________________________________________________________________________
-						//Archive & Display Message; Update Status...
-						//___________________________________________________________________________________
+
+//**********************************************************************************************//
+//*******************************    Display sent message above   ******************************//
+//**********************************************************************************************//
 						if (TransmitPacket(transmit_buffer, UDP_PACKET_PAYLOAD_OFFSET + curMsgChar + 1)==DMFE_SUCCESS && curMsgChar > userChar+2) {
 							if (curMsgChar < 81)
 							{
@@ -824,7 +831,6 @@ int main()
 								put_vga_string("Message sent successfully.", 0, 26);
 								current_line++;
 							}
-
 						} else {
 							for (i = 411; i < 435; i++)
 							{
@@ -840,55 +846,9 @@ int main()
 							UDP_PACKET_PAYLOAD[curMsgChar] = 0;
 						}
 
-
-
-
-
-						//						byte14 = transmit_buffer[14] << 8;
-						//						byte15 = transmit_buffer[15];
-						//						byte16 = transmit_buffer[16] << 8;
-						//						byte17 = transmit_buffer[17];
-						//						byte18 = transmit_buffer[18] << 8;
-						//						byte19 = transmit_buffer[19];
-						//						byte20 = transmit_buffer[20] << 8;
-						//						byte21 = transmit_buffer[21];
-						//						byte22 = transmit_buffer[22] << 8;
-						//						byte23 = transmit_buffer[23];
-						//						byte24 = transmit_buffer[24] << 8;
-						//						byte25 = transmit_buffer[25];
-						//						byte26 = transmit_buffer[26] << 8;
-						//						byte27 = transmit_buffer[27];
-						//						byte28 = transmit_buffer[28] << 8;
-						//						byte29 = transmit_buffer[29];
-						//						byte30 = transmit_buffer[30] << 8;
-						//						byte31 = transmit_buffer[31];
-						//						byte32 = transmit_buffer[32] << 8;
-						//						byte33 = transmit_buffer[33];
-						//
-						//						ip_header0 = byte14 + byte15;
-						//						ip_header1 = byte16 + byte17;
-						//						ip_header2 = byte18 + byte19;
-						//						ip_header3 = byte20 + byte21;
-						//						ip_header4 = byte22 + byte23;
-						//						ip_header5 = byte24 + byte25;
-						//						ip_header6 = byte26 + byte27;
-						//						ip_header7 = byte28 + byte29;
-						//						ip_header8 = byte30 + byte31;
-						//						ip_header9 = byte32 + byte33;
-						//
-						//						crc_twos = ip_header0+ip_header1+ip_header2+ip_header3+ip_header4+ip_header5+ip_header6+ip_header7+ip_header8+ip_header9;
-						//						printf("\n %hx twos: ", crc_twos);
-						//						crc_carry = crc_twos >> 16;
-						//						printf("\n %hx carry: ", crc_carry);
-						//						crc_ones = crc_twos + crc_carry;
-						//						printf("\n ones: %hx", crc_ones);
-						//						checksum = (crc_ones ^ 0xFFFF); // invert bits
-						//						printf("\n %hx checksum: ", checksum);
-
-
-						//___________________________________________________________________________________
-						//Packet ID Counter...
-						//___________________________________________________________________________________
+//**********************************************************************************************//
+//***********************************    Increment Payload ID   ********************************//
+//**********************************************************************************************//
 						if (transmit_buffer[19] != 0xff)
 						{
 							transmit_buffer[19]++;
@@ -900,21 +860,23 @@ int main()
 						}
 						printf ("\n %hX", transmit_buffer[18]);
 						printf ("\n %hX \n", transmit_buffer[19]);
-						//
-						//
-						//
 					}
 					break;
+
+//**********************************************************************************************//
+//************************************    Shift key on/off   ***********************************//
+//**********************************************************************************************//
 				case 0x12:
 				case 0x59:
 				{
 					shift = 1;
 				}
 				break;
-				//___________________________________________________________________________________
-				//Space Key...
-				//___________________________________________________________________________________
 				case 0x29:
+
+//**********************************************************************************************//
+//********************************   Username Space Key Handling   *****************************//
+//**********************************************************************************************//
 					if (username_input == 1)
 					{
 						if (userChar < 10)
@@ -945,6 +907,10 @@ int main()
 							userChar++;
 						}
 					}
+
+//**********************************************************************************************//
+//********************************   Message Space Key Handling   ******************************//
+//**********************************************************************************************//
 					else
 					{
 						if (curMsgChar < MAX_MSG_LENGTH_USER)
@@ -1011,78 +977,14 @@ int main()
 									}
 								}
 							}
-
-
-							//
-							//
-							//							if (curLineChar == 77)
-							//							{
-							//								curMsgLine = curMsgLine + 1;
-							//								curLineChar = 0;
-							//								for (j = cursor_y; j < cursor_y+16; j++)
-							//									Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
-							//								cursor_x_char = 0;
-							//								cursor_y_char = 29;
-							//								cursor_x = (cursor_x_char*8)-1-1+1;
-							//								cursor_y = cursor_y_char*16;
-							//								for (j = cursor_y; j < cursor_y+16; j++)
-							//								{
-							//									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
-							//								}
-							//
-							//							}
-							//							else
-							//							{
-							//								curLineChar++;
-							//								for (j = cursor_y; j < cursor_y+16; j++)
-							//									Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
-							//								cursor_x_char++;
-							//								cursor_x = (cursor_x_char*8)-1;
-							//								cursor_y = cursor_y_char*16;
-							//								put_vga_char(' ', curLineChar, curMsgLine);
-							//								for (j = cursor_y; j < cursor_y+16; j++)
-							//								{
-							//									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
-							//								}
-							//							}
 						}
 					}
-
-
-
-
-
-
-					//
-					//						curMsgChar++;
-					//						curLineChar++;
-					//						if (cursor_x_char == 78 && cursor_y_char == 28)
-					//						{
-					//							cursor_x_char = 0;
-					//							cursor_y_char = 29;
-					//						}
-					//						if (curLineChar == 78) {
-					//							curLineChar = 0;
-					//							curMsgLine = curMsgLine + 1;
-					//						}
-					//						if (curMsgChar == 1) {
-					//							for (i = 411; i < 435; i++)
-					//							{
-					//								for (j = 0; j < 640; j++)
-					//								{
-					//									Vga_Clr_Pixel(VGA_0_BASE, j, i);
-					//								}
-					//							}
-					//						}
-					//					}
-
-					//
-					//
 					break;
-					//___________________________________________________________________________________
-					//Backspace Key...
-					//___________________________________________________________________________________
 				case 0x66:
+
+//**********************************************************************************************//
+//******************************   Username Backspace Key Handling   ***************************//
+//**********************************************************************************************//
 					if (username_input == 1)
 					{
 						if (userChar != 0)
@@ -1113,6 +1015,10 @@ int main()
 							}
 						}
 					}
+
+//**********************************************************************************************//
+//******************************   Message Backspace Key Handling   ****************************//
+//**********************************************************************************************//
 					else
 					{
 						if (curMsgChar != 0)
@@ -1130,14 +1036,12 @@ int main()
 										for (i = cursor_x_char-26; i < curMsgChar; i++)
 											put_vga_char(UDP_PACKET_PAYLOAD[i], i+25, 28);
 										put_vga_char(' ', curMsgChar+25-1, 28);
-										put_vga_char(' ', 0, 29);//ok
-										for (i = 78; i < 80; i++)//ok
-											put_vga_char(' ', i, 28);//ok
+										put_vga_char(' ', 0, 29);
+										for (i = 78; i < 80; i++)
+											put_vga_char(' ', i, 28);
 									}
 									if (curMsgLine == 29)
 									{
-										//										for (i = cursor_x_char-26; i < 53; i++)
-										//											put_vga_char(UDP_PACKET_PAYLOAD[i], i+25, 28);
 										for (i = cursor_x_char-25-1; i < 53; i++)
 											put_vga_char(UDP_PACKET_PAYLOAD[i], i+25, 28);
 										for (i = 0; i < curMsgChar-53; i++)//ok
@@ -1154,8 +1058,6 @@ int main()
 									cursor_x_char--;
 									for (j = cursor_y; j < cursor_y+16; j++)
 										Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
-									//									for (i = cursor_x_char-26; i < curMsgChar; i++)
-									//										put_vga_char(UDP_PACKET_PAYLOAD[i], i+25, 28);
 									cursor_x = (cursor_x_char*8)-1;
 									cursor_y = cursor_y_char*16;
 									for (j = cursor_y; j < cursor_y+16; j++)
@@ -1175,7 +1077,7 @@ int main()
 									put_vga_char(' ', curMsgChar-54, 29);
 									for (j = cursor_y; j < cursor_y+16; j++)
 										Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
-									for (i = cursor_x_char; i < curMsgChar-53; i++)//debugged
+									for (i = cursor_x_char; i < curMsgChar-53; i++)
 										put_vga_char(UDP_PACKET_PAYLOAD[i+53-1],i-1,29);
 									curMsgChar--;
 									curLineChar--;
@@ -1187,7 +1089,7 @@ int main()
 										Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
 									}
 								}
-								else //need to add insert case.
+								else
 								{
 									if (cursor_x_char == curLineChar)
 									{
@@ -1238,127 +1140,6 @@ int main()
 							}
 						}
 					}
-
-
-
-
-					//							if (cursor_y_char == 28 && cursor_x_char != 26)
-					//							{
-					//								for (i = cursor_x_char-26; i < curMsgChar; i++)
-					//								{
-					//									UDP_PACKET_PAYLOAD[i] = UDP_PACKET_PAYLOAD[i+1];
-					//								}
-					//							}
-					//							else if (cursor_y_char == 29)
-					//							{
-					//								for (i = cursor_x_char+1; i < curMsgChar+53; i++)
-					//								{
-					//									UDP_PACKET_PAYLOAD[i] = UDP_PACKET_PAYLOAD[i+1];
-					//								}
-					//							}
-					//							curMsgChar--;
-					//							curLineChar--;
-					//							//
-					//							for (i = cursor_x_char-25; i < curMsgChar+1; i++)
-					//								put_vga_char(UDP_PACKET_PAYLOAD[i], i+25-1, 14);
-					//							//
-					//							for (j = cursor_y; j < cursor_y+16; j++)
-					//								Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
-					//							if (curMsgLine == 28 && cursor_y_char == 28)
-					//							{
-					//								for (i = cursor_x_char-25; i < curMsgChar+1; i++)
-					//									put_vga_char(UDP_PACKET_PAYLOAD[i], i+25-1, cursor_y_char);
-					//							}
-					//							if (curMsgLine == 29 && cursor_y_char == 28)
-					//							{
-					//								for (i = cursor_x_char-25; i < 53; i++)
-					//									put_vga_char(UDP_PACKET_PAYLOAD[i], i+25-1, cursor_y_char);
-					//								for (i = 0; i < curMsgChar+1-53; i++)
-					//									put_vga_char(UDP_PACKET_PAYLOAD[i+53], i, curMsgLine);
-					//							}
-					//							else if (curMsgLine == 29 && cursor_y_char == 29)
-					//							{
-					//								for (i = cursor_x_char; i < curMsgChar+1-53; i++)
-					//									put_vga_char(UDP_PACKET_PAYLOAD[i+53], i-1, cursor_y_char);
-					//							}
-					//							cursor_x_char--;
-					//							cursor_x = (cursor_x_char*8)-1;
-					//							cursor_y = cursor_y_char*16;
-					//							for (j = cursor_y; j < cursor_y+16; j++)
-					//							{
-					//								Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
-					//							}
-					////							if (cursor_x_char == 78 && cursor_y_char == 28)
-					////							{
-					////								cursor_x_char = 0;
-					////								cursor_y_char = 29;
-					////							}
-					//							if (curLineChar == 1) {
-					//								curLineChar = 77;
-					//								curMsgLine--;
-					//							}
-
-
-
-
-
-					//							else if (curLineChar == 1)
-					//							{
-					//								curLineChar--;
-					//								for (j = cursor_y; j < cursor_y+16; j++)
-					//									Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
-					//								cursor_x_char--;
-					//								cursor_x = (cursor_x_char*8)-1-1+1;
-					//								cursor_y = cursor_y_char*16;
-					//								put_vga_char(' ', curLineChar, curMsgLine);
-					//								for (j = cursor_y; j < cursor_y+16; j++)
-					//								{
-					//									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
-					//								}
-					//							}
-					//							else
-					//							{
-					//								curLineChar--;
-					//								for (j = cursor_y; j < cursor_y+16; j++)
-					//									Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
-					//								cursor_x_char--;
-					//								cursor_x = (cursor_x_char*8)-1;
-					//								cursor_y = cursor_y_char*16;
-					//								put_vga_char(' ', curLineChar, curMsgLine);
-					//								for (j = cursor_y; j < cursor_y+16; j++)
-					//								{
-					//									Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
-					//								}
-					//							}
-
-
-					//
-					//
-					//							if (cursor_x_char == 78 && cursor_y_char == 28)
-					//							{
-					//								cursor_x_char = 0;
-					//								cursor_y_char = 29;
-					//							}
-					//							if (curLineChar == 78) {
-					//								curLineChar = 0;
-					//								curMsgLine = curMsgLine + 1;
-					//							}
-					//							if (curMsgChar == 1) {
-					//								for (i = 411; i < 435; i++)
-					//								{
-					//									for (j = 0; j < 640; j++)
-					//									{
-					//										Vga_Clr_Pixel(VGA_0_BASE, j, i);
-					//									}
-					//								}
-					//							}
-
-
-
-
-
-
-
 					break;
 				default:
 					printf(" MAKE CODE :\t%X\n", key ); //print other unknown breakcode
@@ -1366,14 +1147,21 @@ int main()
 				break ;
 				case KB_BREAK_CODE :
 					printf(" MAKE CODE :\t%X\n", key ); //print other unknown breakcode
-
 					switch (key)
 					{
+
+//**********************************************************************************************//
+//***********************************   Shift Release Handling   *******************************//
+//**********************************************************************************************//
 					case 0x12:
 					case 0x59:
 						shift = 0;
 						break;
 					case 0x6b:
+
+//**********************************************************************************************//
+//******************************   Username Left Arrow Handling   ******************************//
+//**********************************************************************************************//
 						if (username_input == 1)
 						{
 							if (cursor_x_char != 26)
@@ -1389,6 +1177,10 @@ int main()
 								}
 							}
 						}
+
+//**********************************************************************************************//
+//******************************   Message Left Arrow Handling   *******************************//
+//**********************************************************************************************//
 						else
 						{
 							if (cursor_x_char != 25 && cursor_y_char == 28)
@@ -1433,9 +1225,12 @@ int main()
 
 							}
 						}
-
 						break;
 					case 0x74:
+
+//**********************************************************************************************//
+//******************************   Username Right Arrow Handling   *****************************//
+//**********************************************************************************************//
 						if (username_input == 1)
 						{
 							if (cursor_x_char-26 < userChar)
@@ -1451,6 +1246,10 @@ int main()
 								}
 							}
 						}
+
+//**********************************************************************************************//
+//*******************************   Message Right Arrow Handling   *****************************//
+//**********************************************************************************************//
 						else
 						{
 							if (cursor_x_char != 77)
@@ -1498,22 +1297,6 @@ int main()
 										Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
 									}
 								}
-								//								else
-								//								{
-								//									if (cursor_x_char < curLineChar)
-								//									{
-								//										for (j = cursor_y; j < cursor_y+16; j++)
-								//											Vga_Clr_Pixel(VGA_0_BASE, cursor_x, j);
-								//										cursor_x_char = 0;
-								//										cursor_y_char++;
-								//										cursor_x = (cursor_x_char*8)-1;
-								//										cursor_y = cursor_y_char*16;
-								//										for (j = cursor_y; j < cursor_y+16; j++)
-								//										{
-								//											Vga_Set_Pixel(VGA_0_BASE, cursor_x, j);
-								//										}
-								//									}
-								//								}
 							}
 						}
 						break;
@@ -1529,7 +1312,6 @@ int main()
 	}
 	printf("Program terminated normally\n");
 	return 0;
-
 	ErrorExit:
 	printf("Program terminated with an error condition\n");
 	return 1;
