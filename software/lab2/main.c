@@ -843,17 +843,17 @@ int main()
 						//___________________________________________________________________________________
 						//Packet ID Counter...
 						//___________________________________________________________________________________
-//						if (transmit_buffer[19] != 0xff)
-//						{
-//							transmit_buffer[19]++;
-//						}
-//						else
-//						{
-//							transmit_buffer[18]++;
-//							transmit_buffer[19] = 0x00;
-//						}
-//						printf ("\n %hX", transmit_buffer[18]);
-//						printf ("\n %hX \n", transmit_buffer[19]);
+						if (transmit_buffer[19] != 0xff)
+						{
+							transmit_buffer[19]++;
+						}
+						else
+						{
+							transmit_buffer[18]++;
+							transmit_buffer[19] = 0x00;
+						}
+						printf ("\n %hX", transmit_buffer[18]);
+						printf ("\n %hX \n", transmit_buffer[19]);
 //
 //
 //
