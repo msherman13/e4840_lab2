@@ -117,6 +117,7 @@ static void ethernet_interrupt_handler() {
 	int crc_carry;
 	int crc_ones;
 	unsigned int long checksum;
+	alt_u32 checksum_32;
 
 
 
@@ -150,6 +151,8 @@ static void ethernet_interrupt_handler() {
 				if (receive_buffer[23] == 0x11) {
 					// A UDP packet
 					if (receive_buffer_length >= UDP_PACKET_PAYLOAD_OFFSET) {
+
+
 
 						byte14 = receive_buffer[14] << 8;
 						byte15 = receive_buffer[15];
@@ -189,9 +192,9 @@ static void ethernet_interrupt_handler() {
 						printf("\n %hx carry: ", crc_carry);
 						crc_ones = crc_twos + crc_carry;
 						printf("\n ones: %hx", crc_ones);
-						checksum = (crc_ones ^ 0xFFFF);
+						checksum = crc_ones ^ 0xFFFF; // invert bits
 						printf("\n %hx checksum: ", checksum);
-						if (checksum == 0)
+						if (checksum == 0x0000)
 						{
 							printf("Received: %s\n",receive_buffer + UDP_PACKET_PAYLOAD_OFFSET);
 							for (i = UDP_PACKET_PAYLOAD_OFFSET; i < 79; i++)
@@ -636,6 +639,55 @@ int main()
 					}
 					else
 					{
+						//___________________________________________________________________________________
+						//Checksum Calculator... (checksum hole = transmit_buffer[25] & transmit_buffer[26]
+						//___________________________________________________________________________________
+						byte14 = transmit_buffer[14] << 8;
+						byte15 = transmit_buffer[15];
+						byte16 = transmit_buffer[16] << 8;
+						byte17 = transmit_buffer[17];
+						byte18 = transmit_buffer[18] << 8;
+						byte19 = transmit_buffer[19];
+						byte20 = transmit_buffer[20] << 8;
+						byte21 = transmit_buffer[21];
+						byte22 = transmit_buffer[22] << 8;
+						byte23 = transmit_buffer[23];
+						byte26 = transmit_buffer[26] << 8;
+						byte27 = transmit_buffer[27];
+						byte28 = transmit_buffer[28] << 8;
+						byte29 = transmit_buffer[29];
+						byte30 = transmit_buffer[30] << 8;
+						byte31 = transmit_buffer[31];
+						byte32 = transmit_buffer[32] << 8;
+						byte33 = transmit_buffer[33];
+
+						ip_header0 = byte14 + byte15;
+						ip_header1 = byte16 + byte17;
+						ip_header2 = byte18 + byte19;
+						ip_header3 = byte20 + byte21;
+						ip_header4 = byte22 + byte23;
+						ip_header6 = byte26 + byte27;
+						ip_header7 = byte28 + byte29;
+						ip_header8 = byte30 + byte31;
+						ip_header9 = byte32 + byte33;
+
+						crc_twos = ip_header0+ip_header1+ip_header2+ip_header3+ip_header4+ip_header6+ip_header7+ip_header8+ip_header9;
+						printf("\n %hx twos: ", crc_twos);
+						crc_carry = crc_twos >> 16;
+						printf("\n %hx carry: ", crc_carry);
+						crc_ones = crc_twos + crc_carry;
+						printf("\n ones: %hx", crc_ones);
+//						checksum = ~crc_ones;
+						checksum = (crc_ones ^ 0xFFFF); // invert bits
+						printf("\n %hx checksum: ", checksum);
+
+						transmit_buffer[24] = checksum >> 8;
+						transmit_buffer[25] = checksum;
+						printf("\n %hx checksum_stored: ", transmit_buffer[24]);
+						printf("\n %hx checksum_stored: ", transmit_buffer[25]);
+
+
+
 						for (i = 0; i < userChar-1; i++)
 						{
 							PAYLOAD_TEMP[i] = username[i];
@@ -742,71 +794,69 @@ int main()
 							UDP_PACKET_PAYLOAD[curMsgChar] = 0;
 						}
 
+
+
+
+
+//						byte14 = transmit_buffer[14] << 8;
+//						byte15 = transmit_buffer[15];
+//						byte16 = transmit_buffer[16] << 8;
+//						byte17 = transmit_buffer[17];
+//						byte18 = transmit_buffer[18] << 8;
+//						byte19 = transmit_buffer[19];
+//						byte20 = transmit_buffer[20] << 8;
+//						byte21 = transmit_buffer[21];
+//						byte22 = transmit_buffer[22] << 8;
+//						byte23 = transmit_buffer[23];
+//						byte24 = transmit_buffer[24] << 8;
+//						byte25 = transmit_buffer[25];
+//						byte26 = transmit_buffer[26] << 8;
+//						byte27 = transmit_buffer[27];
+//						byte28 = transmit_buffer[28] << 8;
+//						byte29 = transmit_buffer[29];
+//						byte30 = transmit_buffer[30] << 8;
+//						byte31 = transmit_buffer[31];
+//						byte32 = transmit_buffer[32] << 8;
+//						byte33 = transmit_buffer[33];
+//
+//						ip_header0 = byte14 + byte15;
+//						ip_header1 = byte16 + byte17;
+//						ip_header2 = byte18 + byte19;
+//						ip_header3 = byte20 + byte21;
+//						ip_header4 = byte22 + byte23;
+//						ip_header5 = byte24 + byte25;
+//						ip_header6 = byte26 + byte27;
+//						ip_header7 = byte28 + byte29;
+//						ip_header8 = byte30 + byte31;
+//						ip_header9 = byte32 + byte33;
+//
+//						crc_twos = ip_header0+ip_header1+ip_header2+ip_header3+ip_header4+ip_header5+ip_header6+ip_header7+ip_header8+ip_header9;
+//						printf("\n %hx twos: ", crc_twos);
+//						crc_carry = crc_twos >> 16;
+//						printf("\n %hx carry: ", crc_carry);
+//						crc_ones = crc_twos + crc_carry;
+//						printf("\n ones: %hx", crc_ones);
+//						checksum = (crc_ones ^ 0xFFFF); // invert bits
+//						printf("\n %hx checksum: ", checksum);
+
+
 						//___________________________________________________________________________________
 						//Packet ID Counter...
 						//___________________________________________________________________________________
-						if (transmit_buffer[19] != 0xff)
-						{
-							transmit_buffer[19]++;
-						}
-						else
-						{
-							transmit_buffer[18]++;
-							transmit_buffer[19] = 0x00;
-						}
-						printf ("\n %hX", transmit_buffer[18]);
-						printf ("\n %hX \n", transmit_buffer[19]);
-
-						//___________________________________________________________________________________
-						//Checksum Calculator... (checksum hole = transmit_buffer[25] & transmit_buffer[26]
-						//___________________________________________________________________________________
-						byte14 = transmit_buffer[14] << 8;
-						byte15 = transmit_buffer[15];
-						byte16 = transmit_buffer[16] << 8;
-						byte17 = transmit_buffer[17];
-						byte18 = transmit_buffer[18] << 8;
-						byte19 = transmit_buffer[19];
-						byte20 = transmit_buffer[20] << 8;
-						byte21 = transmit_buffer[21];
-						byte22 = transmit_buffer[22] << 8;
-						byte23 = transmit_buffer[23];
-						byte24 = transmit_buffer[24] << 8;
-						byte25 = transmit_buffer[25];
-						byte26 = transmit_buffer[26] << 8;
-						byte27 = transmit_buffer[27];
-						byte28 = transmit_buffer[28] << 8;
-						byte29 = transmit_buffer[29];
-						byte30 = transmit_buffer[30] << 8;
-						byte31 = transmit_buffer[31];
-						byte32 = transmit_buffer[32] << 8;
-						byte33 = transmit_buffer[33];
-
-						ip_header0 = byte14 + byte15;
-						ip_header1 = byte16 + byte17;
-						ip_header2 = byte18 + byte19;
-						ip_header3 = byte20 + byte21;
-						ip_header4 = byte22 + byte23;
-						ip_header5 = byte24 + byte25;
-						ip_header6 = byte26 + byte27;
-						ip_header7 = byte28 + byte29;
-						ip_header8 = byte30 + byte31;
-						ip_header9 = byte32 + byte33;
-
-						crc_twos = ip_header0+ip_header1+ip_header2+ip_header3+ip_header4+ip_header5+ip_header6+ip_header7+ip_header8+ip_header9;
-						printf("\n %hx twos: ", crc_twos);
-						crc_carry = crc_twos >> 16;
-						printf("\n %hx carry: ", crc_carry);
-						crc_ones = crc_twos + crc_carry;
-						printf("\n ones: %hx", crc_ones);
-						//checksum = ~crc_ones;
-						checksum = (crc_ones ^ 0xFFFF); // invert bits
-						printf("\n %hx checksum: ", checksum);
-
-						transmit_buffer[24] = checksum >> 8;
-						transmit_buffer[25] = checksum;
-						printf("\n %hx checksum_stored: ", transmit_buffer[24]);
-						printf("\n %hx checksum_stored: ", transmit_buffer[25]);
-
+//						if (transmit_buffer[19] != 0xff)
+//						{
+//							transmit_buffer[19]++;
+//						}
+//						else
+//						{
+//							transmit_buffer[18]++;
+//							transmit_buffer[19] = 0x00;
+//						}
+//						printf ("\n %hX", transmit_buffer[18]);
+//						printf ("\n %hX \n", transmit_buffer[19]);
+//
+//
+//
 					}
 					break;
 				case 0x12:
