@@ -139,7 +139,6 @@ static void ethernet_interrupt_handler() {
 		}
 		for(i=0;i<receive_buffer_length;i++) {
 			if (i%8==0) printf("\n");
-			put_vga_string("Message received.", 0, 26);
 			printf("0x%.2X,", receive_buffer[i]);
 		}
 		//put_vga_char(' ', i,2);
@@ -199,6 +198,7 @@ static void ethernet_interrupt_handler() {
 						printf("\n %hx checksum: ", checksum);
 						if (!checksum)
 						{
+							put_vga_string("Message received.", 0, 26);
 							printf("Received: %s\n",receive_buffer + UDP_PACKET_PAYLOAD_OFFSET);
 							if (current_line < 25 && receive_buffer_length < 79)
 							{
@@ -249,6 +249,7 @@ static void ethernet_interrupt_handler() {
 							printf("\n rcvd correct checksum: %hx", checksum);
 						}
 						else
+							put_vga_string("Some slob tried to send you a message but his checksum was wrong.", 0, 26);
 							printf("\n rcvd incorrect checksum: %hx", checksum);
 					}
 				} else {
